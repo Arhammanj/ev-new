@@ -1,0 +1,18 @@
+Reward config R0 (baseline): {"grid": 1.5, "solar": 1.5, "queue": 5.0, "price": 1.0, "pi_error": 0.3, "lookahead_bonus_weight": 0.3}
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+A_ppo_no_forecast: peak 110.73 kW | hard 0 | soft 0 | energy 109523.95 kWh | total_reward 4062.21
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+B_full_twinev: peak 115.72 kW | hard 0 | soft 0 | energy 105393.38 kWh | total_reward 3810.53
+
+Saved results/ablation/forecast_ablation.csv
+               model  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  mean_power_kw  power_variance  energy_delivered_kwh  energy_delivery_pct  charging_cost  solar_utilization_pct  mean_tracking_error_kw  max_tracking_error_kw  mean_ramp_kw  max_ramp_kw  total_reward  mean_reward  std_reward forecast_in_state
+0  A_ppo_no_forecast               0               0         110.73               63.57          85.17           73.07             109523.95                44.13       25676.94                  82.08                    1.65                  19.34          2.02        16.47       4062.21       3.1588      1.1603                no
+1      B_full_twinev               0               0         115.72               61.93          81.95          411.36             105393.38                42.47       25672.55                  88.48                    3.66                  18.60          5.27        12.83       3810.53       2.9631      1.3850               yes

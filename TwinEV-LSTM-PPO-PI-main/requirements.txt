@@ -1,0 +1,18 @@
+# TwinEV v2 dependencies
+# Install:  pip install -r requirements.txt
+#
+# Note: lstm_forecast.py (TensorFlow) is optional; the PyTorch
+# forecaster lstm_forecast_torch.py reproduces it exactly and
+# only needs torch (already listed below).
+
+numpy>=2.0
+pandas>=2.2
+matplotlib>=3.9
+scikit-learn>=1.5
+statsmodels>=0.14
+simpy>=4.1
+joblib>=1.3
+gymnasium>=1.0
+torch>=2.3
+stable-baselines3>=2.3
+tqdm>=4.66          # PPO progress bar (train_rl.py)

@@ -1,0 +1,26 @@
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+[exp1_modelB_full] DONE in 13.5 min | final train reward 352.92

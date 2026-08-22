@@ -1,0 +1,117 @@
+Exact reward configurations used for training:
+  R0: {"grid": 1.5, "solar": 1.5, "queue": 5.0, "price": 1.0, "pi_error": 0.3, "lookahead_bonus_weight": 0.3, "config_id": "R0", "description": "Current baseline reward (as shipped in twinev_env.py)"}
+  R1: {"grid": 1.5, "solar": 1.5, "queue": 1.5, "price": 1.0, "pi_error": 0.3, "lookahead_bonus_weight": 0.3, "config_id": "R1", "description": "Lower queue/safety pressure (dominant queue weight 5.0 -> 1.5)"}
+  R2: {"grid": 1.5, "solar": 1.5, "queue": 1.5, "price": 1.5, "pi_error": 0.5, "lookahead_bonus_weight": 0.3, "config_id": "R2", "description": "Balanced weights across grid/solar/queue/price/tracking"}
+  R3: {"grid": 2.0, "solar": 2.0, "queue": 1.0, "price": 1.0, "pi_error": 0.2, "lookahead_bonus_weight": 0.3, "config_id": "R3", "description": "Service-oriented (emphasize energy/solar delivery, relax safety)"}
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+R0: peak 115.72 kW | hard 0 | soft 0 | energy 105393.38 kWh | delivery 42.47% | total_reward 3810.53
+
+===== Training R1 (seed 1, 500000 steps) =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+R1: peak 107.15 kW | hard 0 | soft 0 | energy 81145.29 kWh | delivery 32.7% | total_reward 3024.04
+
+===== Training R2 (seed 1, 500000 steps) =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+R2: peak 100.73 kW | hard 0 | soft 0 | energy 81239.88 kWh | delivery 32.74% | total_reward 3015.5
+
+===== Training R3 (seed 1, 500000 steps) =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+R3: peak 103.86 kW | hard 0 | soft 0 | energy 75323.1 kWh | delivery 30.35% | total_reward 2573.79
+
+Saved results/reward_sensitivity/reward_sensitivity.csv
+  model  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  mean_power_kw  power_variance  energy_delivered_kwh  energy_delivery_pct  charging_cost  solar_utilization_pct  mean_tracking_error_kw  max_tracking_error_kw  mean_ramp_kw  max_ramp_kw  total_reward  mean_reward  std_reward config
+0    R0               0               0         115.72               61.93          81.95          411.36             105393.38                42.47       25672.55                  88.48                    3.66                  18.60          5.27        12.83       3810.53       2.9631      1.3850     R0
+1    R1               0               0         107.15               64.75          63.10          451.28              81145.29                32.70       19712.44                  78.39                    3.50                  21.73          6.00        16.01       3024.04       2.3515      1.3927     R1
+2    R2               0               0         100.73               66.86          63.17          386.27              81239.88                32.74       19561.72                  77.38                    3.50                  26.01          5.46        16.67       3015.50       2.3449      1.3753     R2
+3    R3               0               0         103.86               65.83          58.57          613.73              75323.10                30.35       18609.19                  78.27                    4.01                  23.92          6.45        17.08       2573.79       2.0014      1.7371     R3

@@ -1,0 +1,142 @@
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+{'seed': 1, 'final_training_reward': 350.5, 'eval_total_reward': 3810.5313625468484, 'hard_overloads': 0, 'soft_overloads': 0, 'peak_power_kw': 115.72, 'energy_delivered_kwh': 105393.38, 'charging_cost': 25672.54883070342, 'power_variance': 411.3638787811797}
+
+===== Training FULL TwinEV seed 2 =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+{'seed': 2, 'final_training_reward': 343.48519804999995, 'eval_total_reward': 3759.648815308261, 'hard_overloads': 0, 'soft_overloads': 0, 'peak_power_kw': 117.09, 'energy_delivered_kwh': 107091.59, 'charging_cost': 25042.17553919688, 'power_variance': 384.54067429797874}
+
+===== Training FULL TwinEV seed 3 =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+{'seed': 3, 'final_training_reward': 353.52667705, 'eval_total_reward': 3766.8398537825406, 'hard_overloads': 0, 'soft_overloads': 0, 'peak_power_kw': 117.6, 'energy_delivered_kwh': 106142.85, 'charging_cost': 25725.52434555575, 'power_variance': 389.43797051178024}
+
+===== Training FULL TwinEV seed 4 =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+{'seed': 4, 'final_training_reward': 355.67202080000004, 'eval_total_reward': 4715.352746130029, 'hard_overloads': 0, 'soft_overloads': 0, 'peak_power_kw': 116.31, 'energy_delivered_kwh': 117682.87000000001, 'charging_cost': 26832.987688450143, 'power_variance': 40.10923942983295}
+
+===== Training FULL TwinEV seed 5 =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+{'seed': 5, 'final_training_reward': 342.4592387, 'eval_total_reward': 4490.988922289462, 'hard_overloads': 0, 'soft_overloads': 0, 'peak_power_kw': 110.99, 'energy_delivered_kwh': 112250.06, 'charging_cost': 25503.224735063613, 'power_variance': 25.89207502473098}
+
+Saved results/statistics/twinev_seed_stability.csv
+   final_training_reward_mean  final_training_reward_std  final_training_reward_min  final_training_reward_max  eval_total_reward_mean  eval_total_reward_std  eval_total_reward_min  eval_total_reward_max  hard_overloads_mean  hard_overloads_std  hard_overloads_min  hard_overloads_max  soft_overloads_mean  soft_overloads_std  soft_overloads_min  soft_overloads_max  peak_power_kw_mean  peak_power_kw_std  peak_power_kw_min  peak_power_kw_max  energy_delivered_kwh_mean  energy_delivered_kwh_std  energy_delivered_kwh_min  energy_delivered_kwh_max  charging_cost_mean  charging_cost_std  charging_cost_min  charging_cost_max  power_variance_mean  power_variance_std  power_variance_min  power_variance_max
+0                  349.128627                   5.923862                 342.459239                 355.672021              4108.67234             458.743391            3759.648815            4715.352746                  0.0                 0.0                   0                   0                  0.0                 0.0                   0                   0             115.542           2.644517             110.99              117.6                  109712.15               5201.739517                 105393.38                 117682.87        25755.292228         659.779042       25042.175539       26832.987688           250.268768          198.658359           25.892075          411.363879
