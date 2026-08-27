@@ -98,6 +98,22 @@ def _parse_requested_kwh(user_inputs, fallback_kwh: float) -> float:
     return kwh if kwh > 0 else fallback_kwh
 
 
+def _parse_datetime_utc(series: pd.Series) -> pd.Series:
+    """Parse an ACN-Data timestamp column to tz-aware UTC datetimes.
+
+    ACN-Data timestamps carry mixed UTC offsets across a year
+    (-08:00 PST / -07:00 PDT for Pacific-timezone sites). Plain
+    `pd.read_csv(..., parse_dates=[...])` (and bare `pd.to_datetime`
+    without `utc=True`) cannot build one consistent datetime64 dtype
+    across mixed offsets and silently falls back to leaving the
+    column as strings (object dtype) - `.dt` accessors then raise,
+    and any comparison/sorting on it is comparing strings, not time.
+    `utc=True` normalizes every row to a single UTC-based dtype
+    regardless of its original offset, which is the fix.
+    """
+    return pd.to_datetime(series, utc=True, errors="coerce")
+
+
 def _read_table(data_path: str) -> pd.DataFrame:
     if data_path.endswith(".csv"):
         return pd.read_csv(data_path)
@@ -148,8 +164,8 @@ def load_acn_sessions(
         )
 
     df = df.copy()
-    df["connectionTime"] = pd.to_datetime(df["connectionTime"], errors="coerce", utc=True)
-    df["disconnectTime"] = pd.to_datetime(df["disconnectTime"], errors="coerce", utc=True)
+    df["connectionTime"] = _parse_datetime_utc(df["connectionTime"])
+    df["disconnectTime"] = _parse_datetime_utc(df["disconnectTime"])
 
     n_before = len(df)
     df = df.dropna(subset=["connectionTime", "disconnectTime", slot_key])
@@ -222,6 +238,44 @@ def load_acn_sessions(
     )
 
 
+def _test_mixed_offset_datetime_parsing() -> None:
+    """Regression test: FAILS if timestamps with mixed UTC offsets
+    (PST -08:00 vs PDT -07:00, as ACN-Data has across a year) come
+    back as strings instead of tz-aware datetimes.
+    """
+    import io
+
+    csv_text = (
+        "connectionTime,disconnectTime\n"
+        "2019-01-15 09:00:00-08:00,2019-01-15 11:00:00-08:00\n"   # PST
+        "2019-07-15 09:00:00-07:00,2019-07-15 11:00:00-07:00\n"   # PDT
+    )
+    df = pd.read_csv(io.StringIO(csv_text))
+    assert df["connectionTime"].dtype == object, (
+        "test fixture assumption broken: expected bare read_csv to "
+        "leave mixed-offset timestamps as strings"
+    )
+
+    parsed = _parse_datetime_utc(df["connectionTime"])
+
+    assert pd.api.types.is_datetime64_any_dtype(parsed), (
+        f"timestamps came back as {parsed.dtype}, not a datetime64 "
+        "dtype - mixed-offset parsing is broken"
+    )
+    assert parsed.dt.tz is not None, "parsed timestamps are not tz-aware"
+    assert parsed.isna().sum() == 0, "valid mixed-offset timestamps were dropped as NaT"
+
+    # Both rows are 09:00 *local* time but on different UTC offsets;
+    # confirm they resolved to different, correctly-shifted UTC instants
+    # rather than being compared/parsed as equal local-looking strings.
+    pst_utc_hour = parsed.iloc[0].hour
+    pdt_utc_hour = parsed.iloc[1].hour
+    assert pst_utc_hour == 17, f"PST row parsed to UTC hour {pst_utc_hour}, expected 17"
+    assert pdt_utc_hour == 16, f"PDT row parsed to UTC hour {pdt_utc_hour}, expected 16"
+
+    print("[PASS] mixed-offset timestamps parse to proper tz-aware UTC datetimes")
+
+
 def make_synthetic_fixture(
     n_slots: int = 4,
     timestep_minutes: int = 60,
@@ -273,3 +327,24 @@ def make_synthetic_fixture(
         timestep_minutes=timestep_minutes,
         start_time=start_time,
     )
+
+
+if __name__ == "__main__":
+    import os
+
+    _test_mixed_offset_datetime_parsing()
+
+    real_cache = "acn_caltech_2019.csv"
+    if os.path.exists(real_cache):
+        data = load_acn_sessions(real_cache, timestep_minutes=60)
+        assert data.sessions, "loaded 0 sessions from the real cache"
+        for s in data.sessions[:5] + data.sessions[-5:]:
+            assert isinstance(s.connect_step, int) and isinstance(s.disconnect_step, int)
+        print(f"[PASS] loaded {len(data.sessions)} real sessions, "
+              f"{len(data.slot_ids)} slots, {data.n_steps} hourly steps "
+              f"starting {data.start_time}")
+    else:
+        print(f"[skip] real cache '{real_cache}' not found - "
+              "only ran the mixed-offset regression test")
+
+    print("\nAll acn_data_loader self-tests passed.")
