@@ -17,9 +17,11 @@
 
 from __future__ import annotations
 
+import math
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 import gymnasium as gym
 from gymnasium import spaces
 
@@ -43,14 +45,26 @@ class ACNChargingEnv(gym.Env):
     a real charging network, where a bay's identity and wiring are
     fixed even as different vehicles cycle through it.
 
-    Observation (shape = 3 * n_slots, all in [0, 1]):
-        [presence_0..presence_{n-1},
-         remaining_demand_norm_0..remaining_demand_norm_{n-1},
-         time_remaining_norm_0..time_remaining_norm_{n-1}]
+    Observation (shape = 3 * n_slots + 4):
+        [presence_0..presence_{n-1},                       in [0, 1]
+         remaining_demand_norm_0..remaining_demand_norm_{n-1},  in [0, 1]
+         time_remaining_norm_0..time_remaining_norm_{n-1},      in [0, 1]
+         sin(hour_of_day), cos(hour_of_day),                in [-1, 1]
+         sin(day_of_week), cos(day_of_week)]                in [-1, 1]
     A slot with no EV connected has presence=0 and the other two
-    fields pinned to 0 (they are meaningless without presence, so the
-    policy must gate on the presence bit rather than reading demand/
-    time directly).
+    per-slot fields pinned to 0 (they are meaningless without
+    presence, so the policy must gate on the presence bit rather than
+    reading demand/time directly).
+
+    The 4 trailing calendar features are cyclical encodings of the
+    real wall-clock time at the current step (`data.start_time` plus
+    `step_idx` timesteps - never just the raw step index, since
+    `start_time` is not midnight/week-aligned in real ACN-Data). They
+    give the policy access to daily/weekly arrival patterns even
+    though the per-slot state alone carries no calendar signal, and
+    are always present in the base observation (not behind a flag) so
+    every training condition shares this same fair baseline; a
+    forecast channel will be added separately later.
 
     Action (shape = n_slots, kW in [0, per_ev_max_kw]):
         requested charging power per slot. Ignored (treated as 0) for
@@ -65,7 +79,7 @@ class ACNChargingEnv(gym.Env):
         transformer_limit_kw: float,
         per_ev_max_kw: float = 6.6,
         reward_weights: Optional[dict] = None,
-        max_demand_norm_kwh: float = 40.0,
+        max_demand_norm_kwh: float = 80.0,
         max_deadline_norm_steps: float = 48.0,
         episode_len: Optional[int] = None,
     ) -> None:
@@ -99,9 +113,13 @@ class ACNChargingEnv(gym.Env):
             low=0.0, high=self.per_ev_max_kw,
             shape=(self.n_slots,), dtype=np.float32,
         )
+        # 3 per-slot fields + 4 cyclical calendar features (sin/cos of
+        # hour-of-day, sin/cos of day-of-week). The calendar features
+        # are in [-1, 1]; the per-slot fields are in [0, 1].
         self.observation_space = spaces.Box(
-            low=0.0, high=1.0, shape=(self.n_slots * 3,), dtype=np.float32,
+            low=-1.0, high=1.0, shape=(self.n_slots * 3 + 4,), dtype=np.float32,
         )
+        self._timestep_delta = pd.Timedelta(minutes=data.timestep_minutes)
 
         self._step_idx = 0
         self._remaining_kwh = np.zeros(self.n_slots, dtype=np.float64)
@@ -112,6 +130,15 @@ class ACNChargingEnv(gym.Env):
         self.last_delivered_kwh = np.zeros(self.n_slots, dtype=np.float64)
         self.last_violation_kw = 0.0
 
+        # kWh from sessions dropped by _admit_arrivals() due to a same-step
+        # slot collision (real, dense ACN-Data turnover: two sessions at
+        # the same spaceID round to the same hourly grid step). This is
+        # detected during reset()'s initial admission, before step() has
+        # any reward/info channel to report it through - stashed here and
+        # folded into the first step()'s unmet accounting so it's never
+        # silently lost (see _admit_arrivals()).
+        self._pending_collision_unmet_kwh = 0.0
+
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
         self._step_idx = 0
@@ -120,7 +147,7 @@ class ACNChargingEnv(gym.Env):
         self._present[:] = False
         self.last_delivered_kwh[:] = 0.0
         self.last_violation_kw = 0.0
-        self._admit_arrivals(self._step_idx)
+        self._pending_collision_unmet_kwh = self._admit_arrivals(self._step_idx)
         return self._obs(), {}
 
     def step(self, action):
@@ -164,6 +191,15 @@ class ACNChargingEnv(gym.Env):
         unmet_kwh = float(self._remaining_kwh[departing].sum())
         reward -= self.reward_weights["unmet"] * unmet_kwh
 
+        # Fold in any collision-dropped kWh discovered when this step's
+        # (or reset()'s, for step 0) arrivals were admitted - see
+        # _admit_arrivals(). Without this, that demand would count toward
+        # total requested kWh but never toward delivered or unmet,
+        # silently breaking the requested == delivered + unmet invariant.
+        unmet_kwh += self._pending_collision_unmet_kwh
+        reward -= self.reward_weights["unmet"] * self._pending_collision_unmet_kwh
+        self._pending_collision_unmet_kwh = 0.0
+
         self._present[departing] = False
         self._remaining_kwh[departing] = 0.0
         self._departure_step[departing] = -1
@@ -184,7 +220,7 @@ class ACNChargingEnv(gym.Env):
             unmet_kwh += trailing_unmet
             self._present[:] = False
         else:
-            self._admit_arrivals(self._step_idx)
+            self._pending_collision_unmet_kwh = self._admit_arrivals(self._step_idx)
 
         info = {
             "delivered_kwh": delivered_kwh.copy(),
@@ -195,21 +231,31 @@ class ACNChargingEnv(gym.Env):
         }
         return self._obs(), float(reward), terminated, truncated, info
 
-    def _admit_arrivals(self, step_idx: int) -> None:
+    def _admit_arrivals(self, step_idx: int) -> float:
+        """Admit sessions arriving at step_idx. Returns the kWh of any
+        session that could NOT be admitted because its physical slot was
+        still occupied by a still-connected EV (a same-step collision -
+        real, dense ACN-Data turnover can round two adjacent sessions at
+        the same spaceID onto the same hourly grid step). That EV keeps
+        whichever session arrived first; the second genuinely has nowhere
+        to charge in this simulation, so its full demand counts as
+        unmet - the caller MUST fold the returned value into that step's
+        unmet-energy accounting, or total requested kWh silently stops
+        equalling delivered + unmet kWh over the episode.
+        """
+        collision_kwh = 0.0
         if step_idx >= len(self.data.arrivals_by_step):
-            return
+            return collision_kwh
         for session_idx in self.data.arrivals_by_step[step_idx]:
             session = self.data.sessions[session_idx]
             slot = self.slot_index[session.slot_id]
             if self._present[slot]:
-                # Two sessions claim the same physical slot at the same
-                # step (bad data / overlapping records) - keep whichever
-                # arrived first and drop this one rather than silently
-                # overwriting an EV that's mid-charge.
+                collision_kwh += session.requested_kwh
                 continue
             self._present[slot] = True
             self._remaining_kwh[slot] = session.requested_kwh
             self._departure_step[slot] = session.disconnect_step
+        return collision_kwh
 
     def _obs(self) -> np.ndarray:
         presence = self._present.astype(np.float32)
@@ -228,7 +274,26 @@ class ACNChargingEnv(gym.Env):
             np.clip(steps_left / self.max_deadline_norm_steps, 0.0, 1.0),
             0.0,
         ).astype(np.float32)
-        return np.concatenate([presence, demand_norm, time_norm])
+
+        calendar = self._calendar_features()
+        return np.concatenate([presence, demand_norm, time_norm, calendar])
+
+    def _calendar_features(self) -> np.ndarray:
+        """Cyclical hour-of-day / day-of-week encoding of the real
+        wall-clock time at the current step, anchored to the loader's
+        tz-aware `data.start_time` - NOT derived from `_step_idx`
+        alone, since `start_time` is not midnight/week-aligned in real
+        ACN-Data (e.g. it starts mid-afternoon on a Tuesday)."""
+        current_time = self.data.start_time + self._step_idx * self._timestep_delta
+        hour_frac = current_time.hour + current_time.minute / 60.0
+        dow = current_time.dayofweek  # Monday=0 .. Sunday=6
+
+        hour_angle = 2.0 * math.pi * hour_frac / 24.0
+        dow_angle = 2.0 * math.pi * dow / 7.0
+        return np.array([
+            math.sin(hour_angle), math.cos(hour_angle),
+            math.sin(dow_angle), math.cos(dow_angle),
+        ], dtype=np.float32)
 
 
 # ==========================================
