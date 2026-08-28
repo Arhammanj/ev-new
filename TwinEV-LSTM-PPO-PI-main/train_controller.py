@@ -118,11 +118,14 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         seed: Optional[int] = None,
         violation_penalty_kind: str = "linear",
         violation_softness_kw: float = 25.0,
+        action_floor_kw: float = 0.0,
     ) -> None:
         super().__init__()
         lo, hi = allowed_start_range
         if hi <= lo:
             raise ValueError(f"empty allowed_start_range {allowed_start_range}")
+        if not (0.0 <= action_floor_kw < per_ev_max_kw):
+            raise ValueError("action_floor_kw must be in [0, per_ev_max_kw)")
         self.full_data = full_data
         self.slot_roster = slot_roster
         self.allowed_start_range = (lo, hi)
@@ -133,13 +136,24 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         self.forecast = forecast
         self.violation_penalty_kind = violation_penalty_kind
         self.violation_softness_kw = violation_softness_kw
+        self.action_floor_kw = action_floor_kw
         self._rng = np.random.default_rng(seed)
 
         n_slots = len(slot_roster)
         base_dim = n_slots * 3 + 4
         obs_dim = base_dim + (1 if forecast is not None else 0)
         self.observation_space = spaces.Box(low=-1.0, high=3.0, shape=(obs_dim,), dtype=np.float32)
-        self.action_space = spaces.Box(low=0.0, high=per_ev_max_kw, shape=(n_slots,), dtype=np.float32)
+        # action_floor_kw > 0 forces a minimum non-zero request for
+        # EVERY slot (matching the original synthetic env's [0.2, 1.0]-
+        # scaled bounds, which had an explicit "prevents zero-charging
+        # hack" comment) - SB3 clips sampled actions to this Box AFTER
+        # sampling from the policy's Gaussian, so this floor is enforced
+        # regardless of what the policy's raw output is. The inner env
+        # zeros this out for slots with no EV present regardless, so the
+        # floor only ever affects slots that actually have a connected EV.
+        self.action_space = spaces.Box(
+            low=action_floor_kw, high=per_ev_max_kw, shape=(n_slots,), dtype=np.float32,
+        )
 
         self.inner: Optional[ACNChargingEnv] = None
 
