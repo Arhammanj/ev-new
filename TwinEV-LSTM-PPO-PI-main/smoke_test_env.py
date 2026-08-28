@@ -19,7 +19,7 @@ from acn_data_loader import load_acn_sessions, slice_session_data
 from acn_env import ACNChargingEnv
 
 DATA_PATH = "acn_caltech_2019.csv"
-TRANSFORMER_LIMIT_KW = 150.0
+TRANSFORMER_LIMIT_KW = 50.0   # matches acn_env.py's new default (capacity-constrained scenario)
 PER_EV_MAX_KW = 6.6
 EPISODE_LEN = 168     # one week, hourly steps
 N_EPISODES = 20
@@ -133,22 +133,24 @@ def main() -> None:
 
         results[policy_name] = summarize(policy_name, records)
 
-    # NOTE on the ~11.4% sanity expectation from check_binding.py:
-    # empirically, it does NOT hold here, and that is a real finding,
-    # not a bug. check_binding.py's binding estimate assumes every
-    # CONCURRENTLY CONNECTED EV draws 6.6 kW for its entire connected
-    # duration - but real ACN-Data sessions mostly finish charging in
-    # 1-3 hours (median request ~12 kWh / 6.6 kW ~= 1.8 h) and then
-    # idle at the plug for hours more. A full-year continuous all-max
-    # rollout (see PR description) peaks at only ~137.6 kW once real
-    # per-EV demand exhaustion is modeled - never crossing 150 kW - so
-    # 0% violations at transformer_limit_kw=150 is the CORRECT result
-    # for this env, not a defect. Asserting the original ">0%" premise
-    # would mean asserting something now known to be false, so it's
-    # replaced with checks that stay meaningful regardless: cross-
-    # policy monotonicity and finite values (already checked above).
+    # HISTORY: this test originally ran at transformer_limit_kw=150,
+    # matching check_binding.py's concurrency-based ~11.4% binding
+    # estimate. That combination showed 0.00% violations for BOTH
+    # policies - not a bug: check_binding.py assumed every connected
+    # EV draws 6.6 kW for its whole connected duration, but real
+    # sessions mostly finish charging in 1-3 hours and then idle. A
+    # full-year continuous greedy rollout peaks at only 137.6 kW, so
+    # 150 kW never binds. 50 kW is the corrected default (see
+    # acn_env.py's docstring) - it binds in ~10% of hours on the same
+    # full-year rollout, so a plausibility check is meaningful again.
     all_max_rate = results["all-max"]["violation_rate"]
     random_rate = results["uniform-random"]["violation_rate"]
+    assert 0.0 < all_max_rate < 1.0, (
+        f"all-max policy violation rate {100 * all_max_rate:.2f}% is "
+        "implausible at the 50 kW capacity-constrained limit (expected "
+        "strictly between 0% and 100%, broadly near the ~10% full-year "
+        "binding figure)"
+    )
     assert all_max_rate >= random_rate, (
         f"all-max violation rate ({100 * all_max_rate:.2f}%) is LOWER than "
         f"uniform-random's ({100 * random_rate:.2f}%) - charging harder "
@@ -158,9 +160,9 @@ def main() -> None:
         "all-max policy delivered less energy than uniform-random - "
         "policies are not behaving as their names imply"
     )
-    print(f"\n[INFO] all-max violation rate at 150 kW: {100 * all_max_rate:.2f}% "
-          "(see PR description for why this legitimately differs from the "
-          "~11.4% check_binding.py estimate)")
+    print(f"\n[PASS] all-max violation rate at 50 kW: {100 * all_max_rate:.2f}% "
+          "- plausible and non-trivial (see acn_env.py docstring for the "
+          "150 kW vs 50 kW history)")
     print("[PASS] cross-policy monotonicity checks passed")
     print("[PASS] energy conservation held exactly on every episode")
 

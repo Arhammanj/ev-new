@@ -69,6 +69,17 @@ class ACNChargingEnv(gym.Env):
     Action (shape = n_slots, kW in [0, per_ev_max_kw]):
         requested charging power per slot. Ignored (treated as 0) for
         slots with no EV present.
+
+    Default transformer_limit_kw=50.0 models a capacity-constrained
+    site, not the real Caltech site's actual transformer rating. On
+    the real 2019 Caltech cache, a realistic "charge every connected
+    EV as fast as its remaining demand allows" (greedy) policy peaks
+    at only 137.6 kW aggregate draw across the full year - so a 150 kW
+    limit (a plausible real rating) is NEVER binding (0.00% of hours).
+    50 kW is the smallest reference limit that keeps the safety
+    problem live: greedy achievable draw exceeds it in ~10% of hours,
+    making the constraint real but not hopeless, rather than either
+    trivially satisfied or trivially impossible.
     """
 
     metadata = {"render_modes": []}
@@ -76,7 +87,7 @@ class ACNChargingEnv(gym.Env):
     def __init__(
         self,
         data: ACNSessionData,
-        transformer_limit_kw: float,
+        transformer_limit_kw: float = 50.0,
         per_ev_max_kw: float = 6.6,
         reward_weights: Optional[dict] = None,
         max_demand_norm_kwh: float = 80.0,
