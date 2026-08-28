@@ -303,9 +303,24 @@ def _test_mixed_offset_datetime_parsing() -> None:
     print("[PASS] mixed-offset timestamps parse to proper tz-aware UTC datetimes")
 
 
-def slice_session_data(data: ACNSessionData, start_step: int, length: int) -> ACNSessionData:
+def slice_session_data(
+    data: ACNSessionData, start_step: int, length: int,
+    slot_ids: list[str] | None = None,
+) -> ACNSessionData:
     """Extract a self-contained sub-window of `length` timesteps
     starting at `start_step` from a full-timeline ACNSessionData.
+
+    `slot_ids`: pass the FULL dataset's slot roster (not left as the
+    default None) when windows will be used as RL episodes with a
+    fixed-shape observation/action space - e.g. SB3 PPO queries
+    observation_space/action_space once and assumes it never changes,
+    but a given one-week window may only see arrivals at a SUBSET of
+    physical stations, which would otherwise shrink n_slots for that
+    episode. Passing the full roster keeps every episode's slot
+    indexing identical; slots with no session that week are simply
+    always-empty in that episode's observation. Left as None (auto-
+    derived from just this window's sessions) for non-RL uses like the
+    smoke test, where a shrinking roster is harmless.
 
     Only sessions whose connect_step falls inside [start_step,
     start_step + length) are included - a session already in
@@ -343,10 +358,11 @@ def slice_session_data(data: ACNSessionData, start_step: int, length: int) -> AC
                 requested_kwh=s.requested_kwh,
             ))
 
-    if not sessions:
+    if not sessions and slot_ids is None:
         raise ValueError(f"window [{start_step}, {end_step}) has no session arrivals")
 
-    slot_ids = sorted({s.slot_id for s in sessions})
+    if slot_ids is None:
+        slot_ids = sorted({s.slot_id for s in sessions})
     active_by_step: list[list[int]] = [[] for _ in range(n_steps)]
     arrivals_by_step: list[list[int]] = [[] for _ in range(n_steps)]
     for i, s in enumerate(sessions):

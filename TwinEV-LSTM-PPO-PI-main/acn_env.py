@@ -289,13 +289,33 @@ class ACNChargingEnv(gym.Env):
         calendar = self._calendar_features()
         return np.concatenate([presence, demand_norm, time_norm, calendar])
 
+    def true_remaining_kwh(self) -> np.ndarray:
+        """True per-slot remaining demand (kWh), un-normalized and
+        un-saturated - unlike the observation's demand_norm field,
+        which clips at max_demand_norm_kwh. For reference controllers
+        that legitimately have real metering (e.g. a cap-only
+        baseline representing a real site controller), not for the RL
+        policy itself, which must work from the public observation."""
+        return self._remaining_kwh.copy()
+
+    def true_presence(self) -> np.ndarray:
+        """True per-slot occupancy (bool), see true_remaining_kwh()."""
+        return self._present.copy()
+
+    def current_time(self) -> pd.Timestamp:
+        """Real wall-clock time at the current step, anchored to the
+        loader's tz-aware `data.start_time` - NOT derived from
+        `_step_idx` alone, since `start_time` is not midnight/week-
+        aligned in real ACN-Data (e.g. it starts mid-afternoon on a
+        Tuesday). Public so external wrappers (e.g. a forecast-feature
+        wrapper needing to look up a value at "the real hour this
+        episode step corresponds to") don't have to reach into
+        private state."""
+        return self.data.start_time + self._step_idx * self._timestep_delta
+
     def _calendar_features(self) -> np.ndarray:
-        """Cyclical hour-of-day / day-of-week encoding of the real
-        wall-clock time at the current step, anchored to the loader's
-        tz-aware `data.start_time` - NOT derived from `_step_idx`
-        alone, since `start_time` is not midnight/week-aligned in real
-        ACN-Data (e.g. it starts mid-afternoon on a Tuesday)."""
-        current_time = self.data.start_time + self._step_idx * self._timestep_delta
+        """Cyclical hour-of-day / day-of-week encoding of current_time()."""
+        current_time = self.current_time()
         hour_frac = current_time.hour + current_time.minute / 60.0
         dow = current_time.dayofweek  # Monday=0 .. Sunday=6
 
