@@ -52,6 +52,22 @@ def mape(actual, predicted):
     ) * 100
 
 
+def wape(actual, predicted):
+    """Weighted Absolute Percentage Error: sum(|actual-pred|) / sum(|actual|).
+    Unlike MAPE, well-defined even when actual is zero for some samples -
+    the headline metric for intermittent-demand series (e.g. hourly EV
+    arrival demand, which is genuinely zero in many hours)."""
+
+    actual = np.array(actual, dtype=np.float64)
+    predicted = np.array(predicted, dtype=np.float64)
+
+    denom = np.sum(np.abs(actual))
+    if denom == 0:
+        return float("nan")
+
+    return float(np.sum(np.abs(actual - predicted)) / denom * 100)
+
+
 def control_metrics(power, hard_limit=150, soft_limit=130):
 
     power = np.array(power)

@@ -16,3 +16,4 @@ gymnasium>=1.0
 torch>=2.3
 stable-baselines3>=2.3
 tqdm>=4.66          # PPO progress bar (train_rl.py)
+lightgbm>=4.0        # tabular baseline for the ACN demand forecaster
