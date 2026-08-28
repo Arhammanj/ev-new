@@ -116,6 +116,8 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         episode_len: int = EPISODE_LEN,
         forecast: Optional[ForecastLookup] = None,
         seed: Optional[int] = None,
+        violation_penalty_kind: str = "linear",
+        violation_softness_kw: float = 25.0,
     ) -> None:
         super().__init__()
         lo, hi = allowed_start_range
@@ -129,6 +131,8 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         self.reward_weights = reward_weights
         self.episode_len = episode_len
         self.forecast = forecast
+        self.violation_penalty_kind = violation_penalty_kind
+        self.violation_softness_kw = violation_softness_kw
         self._rng = np.random.default_rng(seed)
 
         n_slots = len(slot_roster)
@@ -162,6 +166,8 @@ class ACNWeeklyEpisodeEnv(gym.Env):
             per_ev_max_kw=self.per_ev_max_kw,
             reward_weights=self.reward_weights,
             episode_len=self.episode_len,
+            violation_penalty_kind=self.violation_penalty_kind,
+            violation_softness_kw=self.violation_softness_kw,
         )
         obs, info = self.inner.reset()
         info = {**info, "start_step": start_step}

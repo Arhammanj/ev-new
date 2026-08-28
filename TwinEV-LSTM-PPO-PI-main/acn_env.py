@@ -93,12 +93,21 @@ class ACNChargingEnv(gym.Env):
         max_demand_norm_kwh: float = 80.0,
         max_deadline_norm_steps: float = 48.0,
         episode_len: Optional[int] = None,
+        violation_penalty_kind: str = "linear",
+        violation_softness_kw: float = 25.0,
     ) -> None:
         super().__init__()
         if transformer_limit_kw <= 0:
             raise ValueError("transformer_limit_kw must be positive")
         if per_ev_max_kw <= 0:
             raise ValueError("per_ev_max_kw must be positive")
+        if violation_penalty_kind not in ("linear", "quadratic"):
+            raise ValueError(
+                f"violation_penalty_kind must be 'linear' or 'quadratic', "
+                f"got {violation_penalty_kind!r}"
+            )
+        if violation_softness_kw <= 0:
+            raise ValueError("violation_softness_kw must be positive")
         if max_demand_norm_kwh <= 0 or max_deadline_norm_steps <= 0:
             raise ValueError("normalization constants must be positive")
         if not data.slot_ids:
@@ -119,6 +128,8 @@ class ACNChargingEnv(gym.Env):
         self.max_demand_norm_kwh = float(max_demand_norm_kwh)
         self.max_deadline_norm_steps = float(max_deadline_norm_steps)
         self.episode_len = int(episode_len or data.n_steps)
+        self.violation_penalty_kind = violation_penalty_kind
+        self.violation_softness_kw = float(violation_softness_kw)
 
         self.action_space = spaces.Box(
             low=0.0, high=self.per_ev_max_kw,
@@ -195,8 +206,26 @@ class ACNChargingEnv(gym.Env):
         self.last_delivered_kwh = delivered_kwh
         self.last_violation_kw = violation_kw
 
+        if self.violation_penalty_kind == "quadratic":
+            # Soft ramp: penalty=0 below the limit (same as linear -
+            # violation_kw is already 0 there), then grows as the
+            # SQUARE of the excess instead of linearly. Calibrated so
+            # the two penalty shapes cross over at
+            # violation_kw == violation_softness_kw: below that
+            # (typical/small excursions), quadratic is strictly
+            # cheaper than linear, giving the agent room to operate
+            # close to the limit without a harsh flat per-kW cost;
+            # above it (a real blowout), quadratic is strictly more
+            # expensive, so large violations are still punished hard.
+            violation_penalty = (
+                self.reward_weights["violation"]
+                * (violation_kw ** 2) / self.violation_softness_kw
+            )
+        else:
+            violation_penalty = self.reward_weights["violation"] * violation_kw
+
         reward = self.reward_weights["energy"] * float(delivered_kwh.sum())
-        reward -= self.reward_weights["violation"] * violation_kw
+        reward -= violation_penalty
 
         departing = self._present & (self._departure_step == self._step_idx)
         unmet_kwh = float(self._remaining_kwh[departing].sum())
