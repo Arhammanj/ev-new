@@ -33,6 +33,45 @@ EPISODE_LEN = 168             # one week, hourly
 TRANSFORMER_LIMIT_KW = 50.0    # matches acn_env.py's default (capacity-constrained scenario)
 PER_EV_MAX_KW = 6.6
 
+
+# ==========================================
+# Symmetric action-space mapping (the action-floor replacement)
+# ==========================================
+# Root cause of the original collapse: SB3 PPO's continuous-action
+# Gaussian policy initializes its mean at ~0 in RAW action units. The
+# physical action box is [0, per_ev_max_kw] kW - an asymmetric range -
+# so an untrained policy's mean (0) sits at the BOTTOM of the box, and
+# ~100% of initial actions get clipped to zero charging. The
+# action-floor patch (action_floor_kw > 0) worked around this by
+# forcing a nonzero minimum, but it permanently forces every present
+# EV to draw at least that much power, which is a blunt, physically
+# arbitrary constraint.
+#
+# The principled fix: give the POLICY a symmetric external action
+# space, a in [-1, 1] per slot (matching the Gaussian's natural
+# init), and map it internally to the physical [0, per_ev_max_kw] kW
+# range:
+#
+#       kw = (a + 1) / 2 * per_ev_max_kw
+#
+# a=-1 -> 0 kW, a=0 -> per_ev_max_kw/2 (the policy's natural init
+# point now lands at the MIDDLE of the usable range, not the bottom),
+# a=+1 -> per_ev_max_kw. This is a pure reparameterization of the
+# action interface between the RL agent and the env - it does not
+# change any physical behavior. All physical clipping (per-EV max via
+# the Box bounds, demand-bounded delivery in ACNChargingEnv.step())
+# is applied identically afterward, on the mapped kW value.
+def symmetric_to_kw(action: np.ndarray, per_ev_max_kw: float) -> np.ndarray:
+    a = np.clip(action, -1.0, 1.0)
+    return (a + 1.0) / 2.0 * per_ev_max_kw
+
+
+def kw_to_symmetric(kw: np.ndarray, per_ev_max_kw: float) -> np.ndarray:
+    """Inverse of symmetric_to_kw - lets a caller that computes an
+    action in physical kW (e.g. a heuristic baseline) submit it
+    through a symmetric-action-space env unchanged."""
+    return np.clip(2.0 * kw / per_ev_max_kw - 1.0, -1.0, 1.0)
+
 # ------------------------------------------------------------------
 # CHRONOLOGICAL SPLIT - identical boundaries used throughout this
 # project's forecasting work (build_demand_forecaster.py,
@@ -119,6 +158,7 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         violation_penalty_kind: str = "linear",
         violation_softness_kw: float = 25.0,
         action_floor_kw: float = 0.0,
+        symmetric_action: bool = False,
     ) -> None:
         super().__init__()
         lo, hi = allowed_start_range
@@ -126,6 +166,11 @@ class ACNWeeklyEpisodeEnv(gym.Env):
             raise ValueError(f"empty allowed_start_range {allowed_start_range}")
         if not (0.0 <= action_floor_kw < per_ev_max_kw):
             raise ValueError("action_floor_kw must be in [0, per_ev_max_kw)")
+        if symmetric_action and action_floor_kw > 0.0:
+            raise ValueError(
+                "symmetric_action and action_floor_kw are alternative fixes for "
+                "the same problem - do not combine them"
+            )
         self.full_data = full_data
         self.slot_roster = slot_roster
         self.allowed_start_range = (lo, hi)
@@ -137,23 +182,33 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         self.violation_penalty_kind = violation_penalty_kind
         self.violation_softness_kw = violation_softness_kw
         self.action_floor_kw = action_floor_kw
+        self.symmetric_action = symmetric_action
         self._rng = np.random.default_rng(seed)
 
         n_slots = len(slot_roster)
         base_dim = n_slots * 3 + 4
         obs_dim = base_dim + (1 if forecast is not None else 0)
         self.observation_space = spaces.Box(low=-1.0, high=3.0, shape=(obs_dim,), dtype=np.float32)
-        # action_floor_kw > 0 forces a minimum non-zero request for
-        # EVERY slot (matching the original synthetic env's [0.2, 1.0]-
-        # scaled bounds, which had an explicit "prevents zero-charging
-        # hack" comment) - SB3 clips sampled actions to this Box AFTER
-        # sampling from the policy's Gaussian, so this floor is enforced
-        # regardless of what the policy's raw output is. The inner env
-        # zeros this out for slots with no EV present regardless, so the
-        # floor only ever affects slots that actually have a connected EV.
-        self.action_space = spaces.Box(
-            low=action_floor_kw, high=per_ev_max_kw, shape=(n_slots,), dtype=np.float32,
-        )
+        if symmetric_action:
+            # See symmetric_to_kw() above for the mapping. External
+            # space is symmetric about 0 so the policy's untrained
+            # Gaussian mean (~0) lands at per_ev_max_kw/2, not at the
+            # bottom of the range.
+            self.action_space = spaces.Box(
+                low=-1.0, high=1.0, shape=(n_slots,), dtype=np.float32,
+            )
+        else:
+            # action_floor_kw > 0 forces a minimum non-zero request for
+            # EVERY slot (matching the original synthetic env's [0.2, 1.0]-
+            # scaled bounds, which had an explicit "prevents zero-charging
+            # hack" comment) - SB3 clips sampled actions to this Box AFTER
+            # sampling from the policy's Gaussian, so this floor is enforced
+            # regardless of what the policy's raw output is. The inner env
+            # zeros this out for slots with no EV present regardless, so the
+            # floor only ever affects slots that actually have a connected EV.
+            self.action_space = spaces.Box(
+                low=action_floor_kw, high=per_ev_max_kw, shape=(n_slots,), dtype=np.float32,
+            )
 
         self.inner: Optional[ACNChargingEnv] = None
 
@@ -188,6 +243,8 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         return self._augment(obs), info
 
     def step(self, action):
+        if self.symmetric_action:
+            action = symmetric_to_kw(np.asarray(action, dtype=np.float64), self.per_ev_max_kw)
         obs, reward, terminated, truncated, info = self.inner.step(action)
         return self._augment(obs), reward, terminated, truncated, info
 

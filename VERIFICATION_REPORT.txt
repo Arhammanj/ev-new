@@ -1,0 +1,141 @@
+VERIFICATION REPORT - Paper Numbers vs. Actual Data/Code
+========================================================================
+
+## 1. DATA COUNTS & SPLITS
+
+Claimed:
+  - Sessions: 10,609
+  - Stations: 54
+  - Requested energy availability: ~85%
+  - Hourly steps: 8,740
+
+Verified:
+  - Sessions: 10,609 ✓ (EXACT MATCH)
+  - Stations: 54 ✓ (EXACT MATCH)
+  - Requested energy availability: 85.5% ✓ (MATCHES claimed ~85%)
+  - Hourly steps: 8,742 ⚠️ (CLAIMED 8,740, ACTUAL 8,742 — off by 2)
+
+Status: 3 of 4 CONFIRMED. Hourly step count is 2 off.
+
+---
+
+## 2. GREEDY POLICY DRAW & BINDING
+
+Claimed:
+  - Peak: 137.6 kW
+  - Mean: 16.8 kW
+  - 50 kW binding: ~10% of hours
+
+Verified (from check_binding.py):
+  - Peak concurrent-based demand: 237.6 kW
+  - Mean concurrent-based demand: 48.6 kW
+  - > 50 kW in 29.28% of hours
+  - > 150 kW in 11.38% of hours
+  - > 151.8 kW (p90) in ~10% of hours
+
+Note on discrepancy:
+  - check_binding.py calculates concurrent_evs * 6.6 kW (theoretical max if all EVs charged at full rate)
+  - The code comments in smoke_test_env.py and acn_env.py mention "137.6 kW" 
+    which comes from an actual greedy ROLLOUT that respects individual EV energy demands
+  - These are measuring different things: theoretical max concurrency vs. actual demand
+  
+Binding % issue:
+  - Claimed: "greedy policy exceeds 50 kW in approximately 10% of hours"
+  - Actual: 29.28% of hours exceed 50 kW
+  - ~10% of hours exceed 150-152 kW (roughly the p90 level)
+  - This suggests the paper may have confused the 50 kW limit binding rate with 
+    the ~10% reference (which applies to 150 kW)
+
+Status: ⚠️ SIGNIFICANT DISCREPANCIES - peak/mean/binding percentages do not match
+
+---
+
+## 3. 2×2 RESULTS (Table II)
+
+Claimed:
+  - cap_only: 0.00% / 17.46% / 2161.6
+  - no_forecast: 3.29±0.94% / 27.61±1.30% / 1884.3±34.9
+  - forecast: 3.00±0.53% / 27.35±1.21% / 1899.0±24.3
+
+Verified (aggregated across 5 seeds):
+  - cap_only: 0.00% / 17.46% / 2161.6 ✓ (EXACT MATCH)
+  - no_forecast: 3.29±0.84% / 27.61±1.16% / 1884.3±31.2
+  - forecast: 3.00±0.47% / 27.35±1.08% / 1899.0±21.7
+
+Analysis:
+  - Violation rates: ✓ EXACT MATCHES
+  - Unmet fractions: ✓ EXACT MATCHES
+  - Delivered kWh: ✓ EXACT MATCHES
+  - Standard deviations (std): ⚠️ SLIGHTLY OFF
+    - no_forecast: claimed 0.94%/1.30%/34.9, actual 0.84%/1.16%/31.2 (smaller spread)
+    - forecast: claimed 0.53%/1.21%/24.3, actual 0.47%/1.08%/21.7 (smaller spread)
+
+Status: MOSTLY CONFIRMED - means are exact, stds are slightly narrower than claimed
+
+---
+
+## 4. FORECASTER METRICS (Table I)
+
+Claimed:
+  - BiLSTM WAPE: 23.8%
+
+Verified (from acn_target_a_metrics.csv):
+  - BiLSTM WAPE: 23.799% ✓ (EXACT MATCH when rounded to 23.8%)
+
+Status: ✓ CONFIRMED
+
+---
+
+## 5. DIAGNOSTIC CORRELATIONS (Part 2 - Correlation Table)
+
+Claimed (implied in discussion):
+  - 1h correlation: 0.40
+  - 3h correlation: 0.72
+  - 6h correlation: 0.90
+
+Verified (from diagnose_forecast.py output - corr with MAX achievable_kw):
+  - 1h: +0.400 ✓ (EXACT MATCH)
+  - 3h: +0.722 ✓ (EXACT MATCH when rounded)
+  - 6h: +0.902 ✓ (MATCHES when rounded to 0.90)
+
+Status: ✓ CONFIRMED
+
+---
+
+## 6. DIAGNOSTIC LEAD-TIME TABLE (Part 3 - Feasibility Table)
+
+Claimed (implied in discussion):
+  - 1h: 64.3% connected, 0 kW slack (median)
+  - 3h: 12.2% connected, 0 kW slack (median)
+  - 6h: 0.7% connected, 43.4 kW slack (median)
+
+Verified (from diagnose_forecast.py output):
+  - 1h: 64.3% connected, median=0.0 kW ✓ (EXACT MATCHES)
+  - 3h: 12.2% connected, median=0.0 kW ✓ (EXACT MATCHES)
+  - 6h: 0.7% connected, median=43.4 kW ✓ (EXACT MATCHES)
+
+Status: ✓ ALL CONFIRMED
+
+---
+
+## SUMMARY
+
+✓ CONFIRMED (6 items):
+  - Session count: 10,609
+  - Station count: 54
+  - Requested energy: ~85.5%
+  - 2×2 means (all 9 numbers)
+  - BiLSTM WAPE: 23.8%
+  - Correlations (1h/3h/6h): 0.40/0.72/0.90
+  - Lead-time feasibility table (all 6 numbers)
+
+⚠️  DISCREPANCIES (4 items):
+  - Hourly steps: claimed 8,740, actual 8,742 (off by 2) — minor
+  - Greedy peak draw: claimed 137.6 kW, actual from check_binding.py is 237.6 kW 
+    (but 137.6 kW may come from an actual demand-respecting rollout vs. theoretical max)
+  - Greedy mean draw: claimed 16.8 kW, actual is 48.6 kW from check_binding.py
+  - Greedy 50 kW binding: claimed ~10%, actual is 29.28% (the ~10% applies to 150 kW instead)
+  - 2×2 standard deviations: slightly smaller in actual data (0.84 vs 0.94, etc.)
+
+RECOMMENDATION: Verify the greedy draw numbers and 50 kW binding percentage —
+these appear to be the only substantive issues. The 8,740 vs 8,742 steps is negligible.
