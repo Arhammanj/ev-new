@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
@@ -500,6 +501,136 @@ def figure_4_alignment():
     plt.close(fig)
 
 
+HORIZON_COMPARISON_CSV = "acn_horizon_comparison.csv"
+
+
+def figure_5_lead_time_controller_performance():
+    """
+    Dual-axis chart: actual trained-controller evidence for the lead-time
+    argument, across every forecast horizon that was trained end-to-end
+    (see report_horizon_comparison.py).
+
+    X-axis: forecast horizon (1h, 3h, 6h)
+    Left y-axis: forecast WAPE (%) - lower is a more accurate forecast
+    Right y-axis: forecast-vs-no_forecast delivered-kWh delta (line) -
+        positive means the forecast condition delivers more energy than
+        the no-forecast baseline at that horizon
+
+    SKIPPED if acn_horizon_comparison.csv doesn't exist yet (i.e. the
+    per-horizon PPO training/eval sweep hasn't been run).
+    """
+    print("\n[Figure 5] Lead time vs. forecast accuracy vs. controller performance...")
+
+    if not os.path.exists(HORIZON_COMPARISON_CSV):
+        print(f"  SKIPPED: {HORIZON_COMPARISON_CSV} not found.")
+        print("  (Run report_horizon_comparison.py after training/evaluating "
+              "every horizon to generate it.)")
+        return False
+
+    df = pd.read_csv(HORIZON_COMPARISON_CSV).sort_values("horizon_h")
+    x_pos = np.arange(len(df))
+    x_labels = [f"{int(h)}h" for h in df["horizon_h"]]
+
+    fig, ax1 = plt.subplots(figsize=FIGURE_SIZE_INCH)
+
+    bars = ax1.bar(
+        x_pos, df["forecast_wape"], color=COLOR_MAP["no_forecast"], alpha=0.7, width=0.5,
+    )
+    ax1.set_ylabel("Forecast WAPE (%)", fontsize=10, fontweight="normal")
+    ax1.set_xlabel("Forecast horizon (exploitable lead time)", fontsize=10, fontweight="normal")
+    ax1.set_xticks(x_pos)
+    ax1.set_xticklabels(x_labels)
+    ax1.grid(True, alpha=0.3, axis="y")
+
+    for bar, val in zip(bars, df["forecast_wape"]):
+        ax1.text(
+            bar.get_x() + bar.get_width() / 2, val, f"{val:.1f}%",
+            ha="center", va="bottom", fontsize=8.5, fontweight="bold",
+            color=COLOR_MAP["no_forecast"],
+        )
+
+    ax2 = ax1.twinx()
+    ax2.axhline(0, color="gray", linewidth=0.8, linestyle="--", zorder=1)
+    ax2.plot(
+        x_pos, df["kwh_diff"], color=COLOR_MAP["forecast"], marker="o",
+        linewidth=2.0, markersize=6, zorder=5,
+    )
+    ax2.set_ylabel("Δ delivered kWh\n(forecast - no_forecast)", fontsize=8, fontweight="normal")
+
+    for x, y in zip(x_pos, df["kwh_diff"]):
+        ax2.text(
+            x, y, f"{y:+.1f}", ha="center",
+            va="bottom" if y >= 0 else "top", fontsize=8.5, fontweight="bold",
+            color=COLOR_MAP["forecast"],
+        )
+
+    fig.suptitle(
+        "Forecast accuracy and controller benefit\nvs. lead time",
+        fontsize=10, fontweight="normal", y=1.06,
+    )
+
+    fig.tight_layout()
+    save_figure(fig, "figure_5_lead_time_controller_performance")
+    plt.close(fig)
+    return True
+
+
+CAPACITY_COMPARISON_CSV = "acn_capacity_comparison.csv"
+
+
+def figure_6_capacity_sweep():
+    """
+    Line plot: violation rate and delivered kWh vs. transformer capacity,
+    one series per condition (cap_only, no_forecast, forecast), across
+    every capacity that was trained/evaluated (see
+    report_capacity_comparison.py). Companion to Figure 2's single-capacity
+    (50kW) snapshot - this shows how all three conditions move as the
+    constraint is relaxed (40kW, tightest) to loosened (100kW).
+
+    SKIPPED if acn_capacity_comparison.csv doesn't exist yet (i.e. the
+    per-capacity PPO training/eval sweep hasn't been run).
+    """
+    print("\n[Figure 6] Capacity sweep...")
+
+    if not os.path.exists(CAPACITY_COMPARISON_CSV):
+        print(f"  SKIPPED: {CAPACITY_COMPARISON_CSV} not found.")
+        print("  (Run report_capacity_comparison.py after training/evaluating "
+              "every capacity to generate it.)")
+        return False
+
+    df = pd.read_csv(CAPACITY_COMPARISON_CSV).sort_values("capacity_kw")
+    x = df["capacity_kw"].values
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(FIGURE_SIZE_INCH[0] * 2, FIGURE_SIZE_INCH[1]))
+
+    series = [
+        ("cap_only", "cap_only_viol_pct", "cap_only_kwh", "s"),
+        ("no_forecast", "no_forecast_viol_mean_pct", "no_forecast_kwh_mean", "o"),
+        ("forecast", "forecast_viol_mean_pct", "forecast_kwh_mean", "^"),
+    ]
+    for condition, viol_col, kwh_col, marker in series:
+        ax1.plot(x, df[viol_col], color=COLOR_MAP[condition], marker=marker,
+                 linewidth=1.8, markersize=5, label=condition)
+        ax2.plot(x, df[kwh_col], color=COLOR_MAP[condition], marker=marker,
+                 linewidth=1.8, markersize=5, label=condition)
+
+    ax1.set_xlabel("Transformer capacity (kW)", fontsize=9)
+    ax1.set_ylabel("Violation rate (%)", fontsize=9)
+    ax1.grid(True, alpha=0.3)
+    ax1.legend(fontsize=7, framealpha=0.95, edgecolor="gray")
+
+    ax2.set_xlabel("Transformer capacity (kW)", fontsize=9)
+    ax2.set_ylabel("Delivered kWh (per test week)", fontsize=9)
+    ax2.grid(True, alpha=0.3)
+    ax2.legend(fontsize=7, framealpha=0.95, edgecolor="gray")
+
+    fig.suptitle("Controller performance vs. transformer capacity", fontsize=11, y=1.03)
+    fig.tight_layout()
+    save_figure(fig, "figure_6_capacity_sweep")
+    plt.close(fig)
+    return True
+
+
 def check_reward_logs_exist() -> bool:
     """
     Check if per-seed training reward logs are available.
@@ -555,14 +686,20 @@ def main():
     figure_2_main_tradeoff()
     figure_3_forecast_wape()
     figure_4_alignment()
-    
+    fig5_generated = figure_5_lead_time_controller_performance()
+    fig6_generated = figure_6_capacity_sweep()
+
     print("\n" + "=" * 70)
     print("SUMMARY")
     print("=" * 70)
-    print(f"✓ Figure 1 (Lead-time):       Generated")
-    print(f"✓ Figure 2 (Trade-off):       Generated")
-    print(f"✓ Figure 3 (Forecast WAPE):   Generated")
-    print(f"✓ Figure 4 (Alignment):       Generated")
+    print(f"[OK] Figure 1 (Lead-time):       Generated")
+    print(f"[OK] Figure 2 (Trade-off):       Generated")
+    print(f"[OK] Figure 3 (Forecast WAPE):   Generated")
+    print(f"[OK] Figure 4 (Alignment):       Generated")
+    print(f"{'[OK]' if fig5_generated else '[--]'} Figure 5 (Horizon sweep):    "
+          f"{'Generated' if fig5_generated else 'Skipped (no horizon sweep results yet)'}")
+    print(f"{'[OK]' if fig6_generated else '[--]'} Figure 6 (Capacity sweep):   "
+          f"{'Generated' if fig6_generated else 'Skipped (no capacity sweep results yet)'}")
     print(f"\nAll figures saved to: {OUTPUT_DIR}/")
     print("  - PDF (vector, publication-ready)")
     print("  - PNG (300 dpi, for preview/slides)")

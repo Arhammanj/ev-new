@@ -212,10 +212,91 @@ investigation supports.
   measurable benefit at 300k steps / 5 seeds.
 - **Established (diagnostic, §7):** the forecast is sound; the *data* doesn't offer
   exploitable anticipation lead time. This reframes §6's null result.
-- **Open / not yet done:** a shorter-horizon forecast (e.g. 1h-ahead, matching the
-  only horizon where any lead time exists at all) has not been tried and might
-  realistically help more than the 6h target used here. An explicit safety
-  layer / action-masking approach has not been tried as an alternative to
-  reward-shaping, which is the more promising lever now that reward tuning is
-  exhausted. Neither of these has been run — they are candidate next steps, not
-  results.
+- **Open / not yet done:** An explicit safety layer / action-masking approach has
+  not been tried as an alternative to reward-shaping, which is the more promising
+  lever now that reward tuning is exhausted. This has not been run — it is a
+  candidate next step, not a result.
+
+## Multi-horizon forecast sweep (2026-09-13)
+
+Tested the §7 hypothesis directly: trained real BiLSTM forecasters and PPO
+controllers (5 seeds each, same 300k-timestep/S3-reward-weight protocol as the
+6h result) at **1h and 3h** horizons too, not just 6h. `test_alternative_targets.py`
+/ `generate_forecast_feature.py` / `exp_2x2_run.py` / `exp_2x2_cap_only.py` all
+take a `--horizon {1,3,6}` argument now; `report_horizon_comparison.py` aggregates
+the three horizons into `acn_horizon_comparison.csv` and
+`make_paper_figures.py`'s new Figure 5 plots it. (`no_forecast`/`cap_only` don't
+depend on horizon, so those were re-evaluated on each horizon's test weeks rather
+than retrained — only the `forecast` condition needed fresh PPO training per
+horizon.)
+
+| Horizon | Forecast WAPE | no_forecast viol% | forecast viol% | no_forecast kWh | forecast kWh | Δ kWh | beats seed noise? |
+|---|---|---|---|---|---|---|---|
+| 1h | 105.69% | 3.36±0.89% | 3.21±0.50% | 1884.3±34.4 | 1895.6±24.7 | +11.3 | NO |
+| 3h | 35.61%  | 3.36±0.89% | 3.02±0.43% | 1885.3±35.1 | 1897.2±18.7 | +12.0 | NO |
+| 6h | 23.80%  | 3.29±0.94% | 3.00±0.53% | 1884.3±34.9 | 1899.0±24.3 | +14.7 | NO |
+
+**Result: the null result is robust across the whole tested accuracy range.**
+Forecast never beats no_forecast beyond seed-to-seed noise, at any horizon —
+despite forecast WAPE spanning 23.8% (6h) to 105.7% (1h), a >4x range in
+accuracy. This directly answers §7's open question: a shorter-horizon forecast
+does not "realistically help more" — it helps just as little as the 6h one did.
+
+**Caveat on the WAPE trend itself:** WAPE improves monotonically with horizon
+(105.7% → 35.6% → 23.8%), but this is not pure evidence that "more lead time is
+inherently more predictable." Target A is a *rolling sum* of arrival demand
+over the horizon window; at h=1 it collapses to the raw per-hour arrival-demand
+series (56%-zero, same as the original hourly target, hence WAPE in the same
+~100% range), while at h=6 summing six hours smooths out that zero-inflation
+and noise. Part of the accuracy gain with horizon is a target-definition
+smoothing artifact of the rolling-sum construction, not solely a lead-time
+effect — worth stating explicitly when writing this up, so the finding isn't
+over-read as "longer lead time is intrinsically easier to forecast" in general.
+
+## Capacity sweep (2026-09-13)
+
+Repeated the 2x2 controller comparison (`cap_only` / `no_forecast` / `forecast`,
+fixed at the paper's primary 6h horizon) across three transformer capacity
+levels: **50 kW** (the paper's original limit, reused as-is) plus **75 kW** and
+**100 kW**, newly trained. Per explicit requirement, `no_forecast` and
+`forecast` were **retrained from scratch at every capacity** (5 seeds each,
+same 300k-timestep/S3-reward-weight protocol) rather than evaluating a
+50kW-trained policy under a different limit — capacity changes the
+environment's actual constraint and reward (unlike forecast horizon, which
+only changes `no_forecast`'s *evaluation* weeks, not its training), so a
+mismatched-capacity evaluation would not be a fair comparison. `exp_2x2_run.py`
+/ `exp_2x2_cap_only.py` / `exp_2x2_report.py` now take a `--capacity-kw`
+argument (`run_dirs()` generalizes the earlier `horizon_dirs()` to key on both
+axes); `report_capacity_comparison.py` aggregates the three capacities into
+`acn_capacity_comparison.csv`, plotted by `make_paper_figures.py`'s new Figure 6.
+(A `40 kW` capacity was also started but stopped and dropped mid-training at
+the user's request before it produced any checkpoint — no partial result
+exists for it.)
+
+| Capacity | cap_only viol% / kWh | no_forecast viol% / kWh | forecast viol% / kWh | Δ kWh | beats seed noise? |
+|---|---|---|---|---|---|
+| 50 kW  | 0.00% / 2161.6 | 3.29±0.94% / 1884.3±34.9 | 3.00±0.53% / 1899.0±24.3 | +14.7 | NO |
+| 75 kW  | 0.00% / 2234.6 | 1.17±0.26% / 2066.0±21.5 | 1.26±0.26% / 2085.1±10.5 | +19.1 | NO |
+| 100 kW | 0.00% / 2245.0 | 0.05±0.07% / 2093.5±20.6 | 0.07±0.07% / 2110.0±14.6 | +16.5 | NO |
+
+**Result: as capacity is relaxed, violations for both learned conditions fall
+sharply and monotonically (3.0-3.3% at 50kW → ~1.2% at 75kW → ~0.05-0.07% at
+100kW) and delivered energy rises accordingly** — the environment/reward
+respond to capacity exactly as expected, a useful sanity check on the whole
+setup. **But the forecast-vs-no_forecast comparison itself is unchanged by
+capacity: forecast never beats no_forecast beyond seed-to-seed noise at any of
+the three levels**, including at 75kW/100kW where `no_forecast` actually edges
+out `forecast` on violation rate (by less than one pooled std either way, so
+this is noise, not a reversal). This is the same qualitative result as the
+horizon sweep: the null finding on forecast usefulness is robust to varying
+capacity, not an artifact of the specific 50kW limit chosen for the paper.
+
+**On "beats seed noise" — same caveat as the horizon sweep, restated for
+clarity:** this is not a t-test, confidence interval, or p-value. It is
+`abs(mean_forecast - mean_no_forecast) > sqrt(std_forecast**2 + std_no_forecast**2)`
+across n=5 seeds per condition (sample std, ddof=1) — a hand-rolled
+effect-size-vs-spread heuristic (`report_capacity_comparison.py`, same logic as
+`report_horizon_comparison.py`). It does not divide by `sqrt(n)`, so it is
+actually a *stricter* bar than a proper standard-error-based test would be —
+worth citing precisely rather than as "not statistically significant" if this
+goes in the paper.

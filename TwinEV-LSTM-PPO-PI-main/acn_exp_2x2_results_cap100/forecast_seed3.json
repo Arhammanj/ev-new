@@ -1,0 +1,1 @@
+{"condition": "forecast", "seed": 3, "horizon": 6, "capacity_kw": 100.0, "violation_rate": 0.0, "unmet_fraction": 0.21108881065548352, "delivered_kwh": 2094.1989697828044}

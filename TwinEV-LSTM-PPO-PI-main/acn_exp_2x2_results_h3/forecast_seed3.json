@@ -1,0 +1,1 @@
+{"condition": "forecast", "seed": 3, "horizon": 3, "violation_rate": 0.029761904761904757, "unmet_fraction": 0.2862552421795939, "delivered_kwh": 1882.2336736595985}

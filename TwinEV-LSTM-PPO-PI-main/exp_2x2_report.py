@@ -6,18 +6,25 @@
 
 from __future__ import annotations
 
+import argparse
 import glob
 import json
 
 import numpy as np
 import pandas as pd
 
-from exp_2x2_run import RESULTS_DIR
+from exp_2x2_run import BASE_HORIZON, BASE_CAPACITY_KW, run_dirs
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--horizon", type=int, choices=[1, 3, 6], default=BASE_HORIZON)
+    parser.add_argument("--capacity-kw", type=float, default=BASE_CAPACITY_KW)
+    args = parser.parse_args()
+    _, results_dir = run_dirs(args.horizon, args.capacity_kw)
+
     rows = []
-    for path in sorted(glob.glob(f"{RESULTS_DIR}/*.json")):
+    for path in sorted(glob.glob(f"{results_dir}/*.json")):
         with open(path) as f:
             rows.append(json.load(f))
     df = pd.DataFrame(rows)

@@ -29,6 +29,8 @@
 
 from __future__ import annotations
 
+import argparse
+
 import numpy as np
 import pandas as pd
 import torch
@@ -205,6 +207,16 @@ def run_ladder(
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--horizon", type=int, default=HORIZON_A,
+                        help="Target A lead time in hours (default: 6, the "
+                             "original/paper horizon). Only affects Target A "
+                             "and its output filename; Target B is unchanged.")
+    args = parser.parse_args()
+    horizon = args.horizon
+    metrics_a_path = ("acn_target_a_metrics.csv" if horizon == HORIZON_A
+                       else f"acn_target_a_h{horizon}_metrics.csv")
+
     data = load_acn_sessions(DATA_PATH, timestep_minutes=60)
     series = build_target_series(DATA_PATH)   # original arrival-demand series + timestamps
     demand = series["demand"].values
@@ -218,27 +230,27 @@ def main() -> None:
 
     # ==================== Target A ====================
     print("\n" + "=" * 60)
-    print("TARGET A - rolling 6h-ahead arrival demand")
+    print(f"TARGET A - rolling {horizon}h-ahead arrival demand")
     print("=" * 60)
-    target_a = build_rolling_6h_ahead(demand, HORIZON_A)
-    valid_end_a = n - HORIZON_A   # last HORIZON_A rows are NaN (future runs off the end)
+    target_a = build_rolling_6h_ahead(demand, horizon)
+    valid_end_a = n - horizon   # last `horizon` rows are NaN (future runs off the end)
     pct_zero_a = 100 * np.mean(target_a[:valid_end_a] == 0)
     print(f"valid range: [0, {valid_end_a}) ({n - valid_end_a} trailing rows dropped - "
           f"their window runs past the end of the data)")
     print(f"% zero hours: {pct_zero_a:.2f}%  mean={np.nanmean(target_a[:valid_end_a]):.3f}  "
           f"std={np.nanstd(target_a[:valid_end_a]):.3f}")
 
-    # persistence override: most recently FULLY REALIZED 6h sum,
-    # sum(demand[t-5..t]) - safe (no future leakage), unlike target_a[t-1]
-    trailing_6h_sum = pd.Series(demand).rolling(HORIZON_A).sum().values
+    # persistence override: most recently FULLY REALIZED `horizon`h sum,
+    # sum(demand[t-horizon+1..t]) - safe (no future leakage), unlike target_a[t-1]
+    trailing_horizon_sum = pd.Series(demand).rolling(horizon).sum().values
     table_a, _ = run_ladder(
         "Target A", timestamps, target_a, feature_source=demand,
-        persistence_override=trailing_6h_sum,
+        persistence_override=trailing_horizon_sum,
         train_end=train_end, val_end=val_end, valid_end=valid_end_a,
     )
     print(f"\ntest window for Target A: [{val_end}, {valid_end_a}) "
           f"({valid_end_a - val_end} hours, {n - valid_end_a} fewer than the "
-          f"canonical 1,311h test window due to the 6h-ahead trim)")
+          f"canonical 1,311h test window due to the {horizon}h-ahead trim)")
     print(table_a.to_string(index=False))
 
     # ==================== Target B ====================
@@ -282,12 +294,12 @@ def main() -> None:
     def lgbm_is_best(table):
         return table.loc[table["WAPE"].idxmin(), "Model"] == "LightGBM"
 
-    verdict("Target A (6h-ahead)", table_a, pct_zero_a)
+    verdict(f"Target A ({horizon}h-ahead)", table_a, pct_zero_a)
     verdict("Target B (concurrent)", table_b, pct_zero_b)
 
-    table_a.to_csv("acn_target_a_metrics.csv", index=False)
+    table_a.to_csv(metrics_a_path, index=False)
     table_b.to_csv("acn_target_b_metrics.csv", index=False)
-    print("\nSaved acn_target_a_metrics.csv, acn_target_b_metrics.csv")
+    print(f"\nSaved {metrics_a_path}, acn_target_b_metrics.csv")
 
 
 if __name__ == "__main__":

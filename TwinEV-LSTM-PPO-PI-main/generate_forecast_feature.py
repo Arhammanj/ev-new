@@ -34,6 +34,8 @@
 
 from __future__ import annotations
 
+import argparse
+
 import numpy as np
 import pandas as pd
 import torch
@@ -52,11 +54,25 @@ torch.manual_seed(42)
 np.random.seed(42)
 
 DATA_PATH = "acn_caltech_2019.csv"
-OUT_CSV = "acn_target_a_bilstm_full.csv"
-REFERENCE_WAPE = 23.799   # from test_alternative_targets.py / acn_target_a_metrics.csv
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--horizon", type=int, default=HORIZON_A,
+                        help="Target A lead time in hours (default: 6, the "
+                             "original/paper horizon).")
+    args = parser.parse_args()
+    horizon = args.horizon
+
+    out_csv = ("acn_target_a_bilstm_full.csv" if horizon == HORIZON_A
+               else f"acn_target_a_h{horizon}_bilstm_full.csv")
+    metrics_path = ("acn_target_a_metrics.csv" if horizon == HORIZON_A
+                    else f"acn_target_a_h{horizon}_metrics.csv")
+    reference_table = pd.read_csv(metrics_path)
+    reference_wape = float(
+        reference_table.loc[reference_table["Model"] == "BiLSTM", "WAPE"].iloc[0]
+    )
+
     series = build_target_series(DATA_PATH)
     demand = series["demand"].values
     timestamps = series["timestamp"]
@@ -65,8 +81,8 @@ def main() -> None:
     train_end = int(n * 0.70)
     val_end = int(n * 0.85)
 
-    target_a = build_rolling_6h_ahead(demand, HORIZON_A)
-    valid_end_a = n - HORIZON_A   # last HORIZON_A rows: window runs past the end of the data
+    target_a = build_rolling_6h_ahead(demand, horizon)
+    valid_end_a = n - horizon   # last `horizon` rows: window runs past the end of the data
 
     df = pd.DataFrame({"timestamp": timestamps[:valid_end_a],
                        "target": target_a[:valid_end_a],
@@ -114,8 +130,8 @@ def main() -> None:
         "actual": actual_all,
         "predicted": pred_all,
     })
-    out.to_csv(OUT_CSV, index=False)
-    print(f"Saved {OUT_CSV} ({len(out)} rows, hour_index {out['hour_index'].iloc[0]} to "
+    out.to_csv(out_csv, index=False)
+    print(f"Saved {out_csv} ({len(out)} rows, hour_index {out['hour_index'].iloc[0]} to "
           f"{out['hour_index'].iloc[-1]}, {out['timestamp'].iloc[0]} to {out['timestamp'].iloc[-1]})")
 
     # ---- Verification: test-window slice must be genuinely held-out ----
@@ -131,11 +147,11 @@ def main() -> None:
 
     print(f"\n===== Test-window verification ({n_test} rows, hour_index >= {val_end}) =====")
     print(f"  RMSE={recomputed_rmse:.4f}  MAE={recomputed_mae:.4f}  WAPE={recomputed_wape:.3f}%")
-    print(f"  reference (test_alternative_targets.py, same code path/seed): WAPE={REFERENCE_WAPE}%")
+    print(f"  reference ({metrics_path}, same code path/seed): WAPE={reference_wape}%")
 
-    assert abs(recomputed_wape - REFERENCE_WAPE) < 1.0, (
+    assert abs(recomputed_wape - reference_wape) < 1.0, (
         f"test-window WAPE {recomputed_wape:.3f}% does not match the "
-        f"already-established genuine held-out figure {REFERENCE_WAPE}% "
+        f"already-established genuine held-out figure {reference_wape}% "
         "(tolerance 1.0 pp) - something about the split/features/training "
         "changed between runs; investigate before trusting this file"
     )
