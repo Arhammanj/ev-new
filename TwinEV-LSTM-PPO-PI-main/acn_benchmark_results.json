@@ -1,0 +1,12 @@
+{
+  "earliest_deadline": {
+    "violation_rate": 0.0,
+    "unmet_fraction": 0.16083455699590504,
+    "delivered_kwh": 2206.0033960769224
+  },
+  "rolling_horizon_mpc": {
+    "violation_rate": 0.0,
+    "unmet_fraction": 0.1575052035845841,
+    "delivered_kwh": 2217.413615468812
+  }
+}

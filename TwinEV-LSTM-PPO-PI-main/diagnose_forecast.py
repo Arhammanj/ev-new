@@ -36,14 +36,21 @@
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 from exp_2x2_run import shared_setup
 from train_controller import ACNWeeklyEpisodeEnv, TRANSFORMER_LIMIT_KW, PER_EV_MAX_KW
 
 HORIZONS = [1, 3, 6]
+CAPACITIES_KW = [50.0, 75.0, 100.0]
+FLEXIBILITY_RECORDS_CSV = "acn_flexibility_records.csv"
+FLEXIBILITY_SUMMARY_CSV = "acn_flexibility_summary.csv"
+SATURATION_PERIODS_CSV = "acn_saturation_periods.csv"
+FLEXIBILITY_PLOT = "acn_flexibility_distributions.png"
 
 
-def greedy_rollout(setup, start_step: int):
+def greedy_rollout(setup, start_step: int, capacity_kw: float = TRANSFORMER_LIMIT_KW):
     """Run the GREEDY (uncapped) reference policy over one test week,
     recording per-hour: wall-clock timestamp, achievable_kw (pre-limit
     total draw), violation_kw, presence, and remaining_kwh - all
@@ -64,7 +71,7 @@ def greedy_rollout(setup, start_step: int):
             present, np.minimum(PER_EV_MAX_KW, remaining_kwh / env.inner.dt_hours), 0.0)
         timestamps.append(env.inner.current_time())
         achievable_kw.append(float(max_deliverable.sum()))
-        violation_kw.append(max(0.0, float(max_deliverable.sum()) - TRANSFORMER_LIMIT_KW))
+        violation_kw.append(max(0.0, float(max_deliverable.sum()) - capacity_kw))
         presence.append(present)
         remaining.append(remaining_kwh)
 
@@ -79,6 +86,221 @@ def greedy_rollout(setup, start_step: int):
         "presence": np.array(presence),   # (T, n_slots) bool
         "remaining": np.array(remaining),  # (T, n_slots) float
     }
+
+
+def _headroom_kw(achievable_kw: np.ndarray, capacity_kw: float) -> np.ndarray:
+    """Non-negative grid headroom before the controller's action."""
+    return np.maximum(0.0, float(capacity_kw) - achievable_kw)
+
+
+def build_flexibility_records(
+    weeks: list[dict],
+    capacity_kw: float,
+    horizons: list[int] | tuple[int, ...] = HORIZONS,
+    dt_hours: float = 1.0,
+) -> pd.DataFrame:
+    """Build pair-level continuous flexibility observations.
+
+    A row represents one EV contributing demand at a saturation-risk hour.
+    ``controllable_demand_kwh`` is the EV's remaining requested energy at
+    that hour.  ``available_headroom_kwh`` sums positive grid headroom over
+    the complete lead-time window, rather than reducing the window to one
+    median slack sample.  ``usable_precharge_kwh`` is the energy-based
+    amount that could be shifted into that window.
+    """
+    rows = []
+    for week_index, wk in enumerate(weeks):
+        achievable = np.asarray(wk["achievable_kw"], dtype=float)
+        presence = np.asarray(wk["presence"], dtype=bool)
+        remaining = np.asarray(wk["remaining"], dtype=float)
+        headroom = _headroom_kw(achievable, capacity_kw)
+        risk = achievable > float(capacity_kw)
+        for horizon in horizons:
+            for risk_step in np.flatnonzero(risk):
+                contributing = np.flatnonzero(
+                    presence[risk_step] & (remaining[risk_step] > 0)
+                )
+                anchor = risk_step - int(horizon)
+                for slot in contributing:
+                    connected_earlier = (
+                        anchor >= 0 and bool(presence[anchor, slot])
+                    )
+                    if connected_earlier:
+                        window_start = anchor
+                        window_end = risk_step
+                        available_headroom_kwh = float(
+                            headroom[window_start:window_end].sum() * dt_hours
+                        )
+                    else:
+                        available_headroom_kwh = 0.0
+                    demand_kwh = float(remaining[risk_step, slot])
+                    usable_kwh = min(demand_kwh, available_headroom_kwh)
+                    rows.append({
+                        "week_index": week_index,
+                        "risk_step": int(risk_step),
+                        "horizon_hours": int(horizon),
+                        "slot_index": int(slot),
+                        "capacity_kw": float(capacity_kw),
+                        "controllable_demand_kwh": demand_kwh,
+                        "connected_at_anchor": connected_earlier,
+                        "anchor_headroom_kw": float(headroom[anchor])
+                        if anchor >= 0 else 0.0,
+                        "available_headroom_kwh": available_headroom_kwh,
+                        "usable_precharge_kwh": usable_kwh,
+                        "flexibility_fraction": (
+                            usable_kwh / demand_kwh if demand_kwh > 0 else 0.0
+                        ),
+                    })
+    return pd.DataFrame(rows)
+
+
+def find_saturation_periods(
+    weeks: list[dict],
+    capacity_kw: float,
+    dt_hours: float = 1.0,
+) -> pd.DataFrame:
+    """Identify contiguous saturation periods and useful pre-onset lead time.
+
+    Useful lead time counts consecutive pre-onset hours in which an EV was
+    already present and positive grid headroom was available.  This is
+    deliberately stricter than elapsed connection time: a connected EV
+    without headroom cannot use that time to pre-charge.
+    """
+    rows = []
+    for week_index, wk in enumerate(weeks):
+        achievable = np.asarray(wk["achievable_kw"], dtype=float)
+        presence = np.asarray(wk["presence"], dtype=bool)
+        remaining = np.asarray(wk["remaining"], dtype=float)
+        saturated = achievable > float(capacity_kw)
+        padded = np.concatenate(([False], saturated, [False]))
+        starts = np.flatnonzero(~padded[:-1] & padded[1:])
+        ends = np.flatnonzero(padded[:-1] & ~padded[1:])
+        headroom = _headroom_kw(achievable, capacity_kw)
+        for period_index, (start, end) in enumerate(zip(starts, ends)):
+            active_slots = np.flatnonzero(
+                np.any(presence[start:end] & (remaining[start:end] > 0), axis=0)
+            )
+            for slot in active_slots:
+                # Count only the contiguous usable window immediately before
+                # the first saturated hour in which this EV is present.
+                useful_hours = 0
+                cursor = int(start) - 1
+                while (
+                    cursor >= 0
+                    and presence[cursor, slot]
+                    and headroom[cursor] > 0
+                ):
+                    useful_hours += 1
+                    cursor -= 1
+                earlier_present = bool(
+                    np.any(presence[:start, slot]) if start > 0 else False
+                )
+                rows.append({
+                    "week_index": week_index,
+                    "period_index": period_index,
+                    "capacity_kw": float(capacity_kw),
+                    "saturation_start_step": int(start),
+                    "saturation_end_step": int(end),
+                    "saturation_duration_hours": (end - start) * dt_hours,
+                    "slot_index": int(slot),
+                    "present_before_onset": earlier_present,
+                    "useful_lead_time_hours": useful_hours * dt_hours,
+                    "pre_onset_headroom_kwh": float(
+                        headroom[max(0, start - useful_hours):start].sum()
+                        * dt_hours
+                    ),
+                })
+    return pd.DataFrame(rows)
+
+
+def summarize_flexibility(
+    records: pd.DataFrame,
+    capacities: list[float] | tuple[float, ...] = CAPACITIES_KW,
+    horizons: list[int] | tuple[int, ...] = HORIZONS,
+) -> pd.DataFrame:
+    """Aggregate continuous and energy-based criterion values."""
+    group_cols = ["capacity_kw", "horizon_hours"]
+    summary = records.groupby(group_cols, as_index=False).agg(
+        observations=("controllable_demand_kwh", "size"),
+        connected_fraction=("connected_at_anchor", "mean"),
+        demand_mean_kwh=("controllable_demand_kwh", "mean"),
+        demand_median_kwh=("controllable_demand_kwh", "median"),
+        headroom_mean_kw=("anchor_headroom_kw", "mean"),
+        headroom_median_kw=("anchor_headroom_kw", "median"),
+        headroom_p25_kw=("anchor_headroom_kw", lambda x: x.quantile(0.25)),
+        headroom_p75_kw=("anchor_headroom_kw", lambda x: x.quantile(0.75)),
+        headroom_energy_mean_kwh=("available_headroom_kwh", "mean"),
+        usable_energy_mean_kwh=("usable_precharge_kwh", "mean"),
+        flexibility_fraction_mean=("flexibility_fraction", "mean"),
+        flexibility_fraction_median=("flexibility_fraction", "median"),
+        useful_energy_fraction=("usable_precharge_kwh", lambda x: float(np.mean(x > 0))),
+    )
+    expected = pd.MultiIndex.from_product(
+        [capacities, horizons], names=group_cols
+    ).to_frame(index=False)
+    return expected.merge(summary, on=group_cols, how="left")
+
+
+def plot_flexibility_distributions(
+    records: pd.DataFrame,
+    output_path: str = FLEXIBILITY_PLOT,
+) -> None:
+    """Plot marginal distributions and the demand/headroom joint relation."""
+    if records.empty:
+        raise ValueError("cannot plot flexibility distributions from no records")
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    for capacity, group in records.groupby("capacity_kw"):
+        label = f"{capacity:g} kW"
+        axes[0, 0].hist(
+            group["controllable_demand_kwh"], bins=30, alpha=0.35, label=label
+        )
+        axes[0, 1].hist(
+            group["anchor_headroom_kw"], bins=30, alpha=0.35, label=label
+        )
+        axes[1, 0].scatter(
+            group["controllable_demand_kwh"],
+            group["anchor_headroom_kw"],
+            s=8,
+            alpha=0.25,
+            label=label,
+        )
+        axes[1, 1].hist(
+            group["flexibility_fraction"], bins=np.linspace(0, 1, 21),
+            alpha=0.35, label=label,
+        )
+    axes[0, 0].set_title("Controllable EV demand")
+    axes[0, 0].set_xlabel("Remaining demand (kWh)")
+    axes[0, 1].set_title("Available grid headroom")
+    axes[0, 1].set_xlabel("Headroom at lead-time anchor (kW)")
+    axes[1, 0].set_title("Demand/headroom joint relationship")
+    axes[1, 0].set_xlabel("Controllable demand (kWh)")
+    axes[1, 0].set_ylabel("Anchor headroom (kW)")
+    axes[1, 1].set_title("Energy-based flexibility fraction")
+    axes[1, 1].set_xlabel("Usable pre-charge energy / demand")
+    for ax in axes.flat:
+        ax.grid(alpha=0.25)
+        ax.legend()
+    fig.suptitle("Flexibility distributions across transformer capacities")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+
+
+def run_flexibility_analysis(weeks: list[dict]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Run the criterion at every requested capacity and save audit files."""
+    records_by_capacity = []
+    periods_by_capacity = []
+    for capacity in CAPACITIES_KW:
+        records_by_capacity.append(build_flexibility_records(weeks, capacity))
+        periods_by_capacity.append(find_saturation_periods(weeks, capacity))
+    records = pd.concat(records_by_capacity, ignore_index=True)
+    periods = pd.concat(periods_by_capacity, ignore_index=True)
+    summary = summarize_flexibility(records)
+    records.to_csv(FLEXIBILITY_RECORDS_CSV, index=False)
+    summary.to_csv(FLEXIBILITY_SUMMARY_CSV, index=False)
+    periods.to_csv(SATURATION_PERIODS_CSV, index=False)
+    plot_flexibility_distributions(records)
+    return records, summary, periods
 
 
 def part1_forecast_variance(setup, weeks):
@@ -210,6 +432,25 @@ def main() -> None:
     part1_forecast_variance(setup, weeks)
     part2_predictive_alignment(setup, weeks)
     part3_lead_time_feasibility(setup, weeks)
+    records, summary, periods = run_flexibility_analysis(weeks)
+
+    print("\n" + "=" * 70)
+    print("PART 4 - Continuous flexibility criterion and capacity sweep")
+    print("=" * 70)
+    print(summary.to_string(index=False))
+    if not periods.empty:
+        period_summary = periods.groupby("capacity_kw", as_index=False).agg(
+            saturation_periods=("period_index", "nunique"),
+            useful_lead_time_mean_hours=("useful_lead_time_hours", "mean"),
+            useful_lead_time_median_hours=("useful_lead_time_hours", "median"),
+            pre_onset_headroom_mean_kwh=("pre_onset_headroom_kwh", "mean"),
+        )
+        print("\nSaturation-onset lead-time summary:")
+        print(period_summary.to_string(index=False))
+    print(
+        f"\nSaved {FLEXIBILITY_RECORDS_CSV}, {FLEXIBILITY_SUMMARY_CSV}, "
+        f"{SATURATION_PERIODS_CSV}, and {FLEXIBILITY_PLOT}"
+    )
 
     print("\n" + "=" * 70)
     print("This is a DIAGNOSIS ONLY - no retuning, no 2x2 rerun. See each "

@@ -1,0 +1,80 @@
+Saved results/capacity_tradeoff/theoretical_service_ceiling.csv
+ power_cap_kw  test_hours  total_available_energy_kwh  maximum_possible_energy_kwh  maximum_possible_service_pct
+          110        1286                   248165.66                       141460                         57.00
+          120        1286                   248165.66                       154320                         62.18
+          125        1286                   248165.66                       160750                         64.78
+          130        1286                   248165.66                       167180                         67.37
+          135        1286                   248165.66                       173610                         69.96
+          140        1286                   248165.66                       180040                         72.55
+          145        1286                   248165.66                       186470                         75.14
+          150        1286                   248165.66                       192900                         77.73
+Saved results/plots/theoretical_service_ceiling.png
+
+Saved results/capacity_tradeoff/greedy_capacity_sweep.csv
+Saved results/plots/greedy_service_vs_cap.png
+
+Loading Service70 model for diagnostics...
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+  cap 110 kW -> service 57.00% | hard 0 soft 0 | req>130 100.0% | req=150 100.0% | delivered@cap 100.0%
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+  cap 120 kW -> service 62.18% | hard 0 soft 0 | req>130 100.0% | req=150 100.0% | delivered@cap 100.0%
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+  cap 125 kW -> service 64.78% | hard 0 soft 0 | req>130 100.0% | req=150 100.0% | delivered@cap 100.0%
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+  cap 130 kW -> service 67.37% | hard 0 soft 0 | req>130 100.0% | req=150 100.0% | delivered@cap 100.0%
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+  cap 135 kW -> service 69.96% | hard 0 soft 1286 | req>130 100.0% | req=150 100.0% | delivered@cap 100.0%
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+  cap 140 kW -> service 72.55% | hard 0 soft 1286 | req>130 100.0% | req=150 100.0% | delivered@cap 100.0%
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+  cap 145 kW -> service 75.14% | hard 0 soft 1286 | req>130 100.0% | req=150 100.0% | delivered@cap 100.0%
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+  cap 150 kW -> service 77.73% | hard 0 soft 1286 | req>130 100.0% | req=150 100.0% | delivered@cap 99.6%
+
+Saved results/capacity_tradeoff/service70_capacity_analysis.csv
+
+Saved results/capacity_tradeoff/capacity_tradeoff_summary.csv
+ power_cap_kw  theoretical_service_pct  greedy_service_pct  twinev_service70_pct  hard_overloads  soft_overloads  energy_delivered_mwh  charging_cost_eur
+          110                    57.00               57.00                 57.00               0               0               141.460           32627.31
+          120                    62.18               62.18                 62.18               0               0               154.320           35593.43
+          125                    64.78               64.77                 64.78               0               0               160.750           37076.49
+          130                    67.37               67.35                 67.37               0               0               167.180           38559.55
+          135                    69.96               69.93                 69.96               0            1286               173.610           40042.61
+          140                    72.55               72.48                 72.55               0            1286               180.040           41525.67
+          145                    75.14               75.01                 75.14               0            1286               186.470           43008.73
+          150                    77.73               77.49                 77.73               0            1286               192.895           44490.64
+Saved results/plots/capacity_tradeoff_summary.png
+
+Experiment 9 complete.

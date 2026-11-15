@@ -1,0 +1,12 @@
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+[MO_FULL] service 44.92% | cost 23,986 | solar 83.2% | hard 0 soft 0 | distinct_levels 299 | corr(price) -0.67 corr(solar) +0.26 corr(demand) -0.04 corr(fc) -0.03

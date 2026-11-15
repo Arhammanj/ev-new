@@ -81,7 +81,10 @@ ACNWeeklyEpisodeEnv  (train_controller.py)
 | `validate_symmetric_action.py` | Validates the symmetric action-space fix against the action-floor patch it replaced |
 | `sweep_reward_weights_symmetric.py` | The reward-weight sweep that locked `energy=1, unmet=2, violation=6` |
 | `exp_2x2_run.py`, `exp_2x2_cap_only.py`, `exp_2x2_report.py` | The full multi-seed {forecast, no_forecast} × {cap_only, safe-RL} experiment and its aggregation report |
-| `diagnose_forecast.py` | Three-part diagnostic verifying the forecast is informative, aligned, and checking whether the data offers exploitable lead time |
+| `diagnose_forecast.py` | Forecast diagnostic plus continuous flexibility analysis, saturation-onset lead time, 50/75/100 kW criterion sweep, distributions, and joint demand/headroom plots |
+| `exp_safety_filtered_ppo.py` | Compares ordinary penalty PPO against PPO with a hard capacity projection safety layer |
+| `benchmark_baselines.py` | Evaluates earliest-deadline-first and rolling-horizon MPC-style scheduling baselines |
+| `synthetic_ramp_experiment.py` | Reproducible gradual-demand ramp fixture for testing whether anticipation can help when lead time exists |
 | `instrument_action_collapse.py`, `instrument_reward_terms.py` | Diagnostics that found the action-space-asymmetry root cause and ruled out reward-content explanations |
 
 **Legacy (superseded, kept for history — not part of the current pipeline):**
@@ -128,6 +131,44 @@ python exp_2x2_report.py
 python diagnose_forecast.py
 ```
 
+Additional reviewer experiments:
+
+```bash
+# Hard safety layer versus ordinary penalty PPO
+python exp_safety_filtered_ppo.py --seed 1 --timesteps 300000
+
+# Constraint-respecting conventional scheduling benchmarks
+python benchmark_baselines.py --capacity-kw 50 --horizon-hours 6
+
+# Synthetic gradual-ramp sanity experiment
+python synthetic_ramp_experiment.py
+```
+
+The PPO runner already supports `--horizon 1`, `--horizon 3`, and
+`--horizon 6` for forecast experiments. To pull another ACN site, set
+`ACN_SITE=jpl` or `ACN_SITE=office001` before running `pull_acn_data.py`;
+the loader and evaluation pipeline use the downloaded CSV's site-neutral
+schema. JPL retained requested-energy values for 96.8% of its 2019 rows in
+the verification run; Office001 retained none, so Office001 falls back to
+`kWhDelivered` and is not directly comparable to Caltech's requested-demand
+experiments without an explicit demand-assumption change.
+
+The MPC benchmark is a receding one-step linear allocation using current
+presence, remaining demand, deadlines, per-EV limits, and the capacity
+constraint. It does not use future actual demand or a forecast trajectory;
+its `--horizon-hours` argument changes urgency weighting rather than solving
+a full multi-step prediction model. The synthetic ramp script is a
+controlled load-profile sanity check, not an ACN environment rollout.
+
+The diagnostic also writes `acn_flexibility_records.csv`,
+`acn_flexibility_summary.csv`, `acn_saturation_periods.csv`, and
+`acn_flexibility_distributions.png`. The flexibility criterion reports
+controllable EV demand, cumulative headroom energy over each lead-time
+window, usable pre-charge energy, and a continuous flexibility fraction at
+50, 75, and 100 kW. Saturation periods are detected as contiguous
+above-capacity intervals; useful lead time counts only pre-onset hours where
+the EV was already present and positive headroom was available.
+
 `exp_2x2_run.py` trains in resumable timestep chunks (`--chunk-timesteps`, default
 150k) and checkpoints to `acn_exp_2x2_checkpoints/` — re-running the same command
 continues from the last checkpoint rather than restarting, and results are written
@@ -160,7 +201,16 @@ PyTorch (BiLSTM forecaster), pandas / NumPy / scikit-learn.
 - The forecast doesn't help *on this data* — this is not a general claim about
   forecast-augmented control; § `diagnose_forecast.py` traces it to the arrival
   dynamics offering no exploitable lead time, not to a broken or misaligned forecast.
-- Not yet tried: a shorter-horizon forecast (e.g. 1h-ahead, matching the only horizon
-  where any lead time exists at all in the diagnostic), and an explicit safety-layer
-  / action-masking approach as an alternative to reward-shaping. Both are candidate
-  next steps, not results — see `PROJECT_LOG.md`'s final section.
+- Safety-filtered PPO has been implemented and verified in focused tests and a
+  2,048-step smoke comparison; a publication-scale multi-seed run is still pending.
+- EDF and one-step MPC-style benchmarks have been executed at 50 kW. The MPC is not
+  a full multi-step predictive optimizer, and its results are not a replacement for
+  a publication-scale benchmark study.
+- JPL and Office001 data downloads and loader/environment checks passed. Full
+  flexibility diagnostics and controller experiments on those sites remain pending;
+  Office001 has no requested-energy field and is therefore not directly comparable.
+- The synthetic ramp is a reproducible load-profile sanity check, not a full
+  ACN/Gym controller rollout.
+- Shorter-horizon controller experiments (1h and 3h) and additional independent
+  controller runs remain pending. No trained PPO binary checkpoints are currently
+  available; the existing checkpoint sidecars preserve timestep bookkeeping only.

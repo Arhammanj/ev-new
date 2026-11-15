@@ -1,0 +1,7 @@
+Train target: 5997 | Val: 1285 | Test: 1286
+Fitting ARIMA(5,1,0) on the training segment...
+ARIMA    RMSE   28.279  MAE   22.954  MAPE  12.695%
+LSTM     RMSE   26.863  MAE   21.432  MAPE  11.407%
+BiLSTM   RMSE   25.952  MAE   20.565  MAPE  10.906%
+
+Saved results/forecasting/forecast_model_comparison.csv

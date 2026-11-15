@@ -1,0 +1,27 @@
+[exp4R1] reward weights: {'description': 'Lower queue/safety pressure (dominant queue weight 5.0 -> 1.5)', 'grid': 1.5, 'solar': 1.5, 'queue': 1.5, 'price': 1.0, 'pi_error': 0.3, 'lookahead_bonus_weight': 0.3}
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 5997 → 7113
+[exp4R1] DONE in 18.9 min | final train reward 337.98

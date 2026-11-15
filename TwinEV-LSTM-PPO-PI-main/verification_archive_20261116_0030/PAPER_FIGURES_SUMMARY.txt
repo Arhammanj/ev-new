@@ -1,0 +1,113 @@
+PUBLICATION FIGURES SUMMARY
+========================================================================
+
+Generated: 2026-09-01
+Script: make_paper_figures.py
+
+------------------------------------------------------------------------
+FIGURES GENERATED
+------------------------------------------------------------------------
+
+✓ Figure 1: Lead-time Finding (Dual-Axis)
+  ├─ File: paper_figures/figure_1_lead_time.pdf (vector)
+  ├─ File: paper_figures/figure_1_lead_time.png (300 dpi)
+  ├─ Title: "No exploitable lead time: vehicles and spare capacity 
+  │          never co-occur"
+  └─ Content:
+      • Left axis (orange bars): % of EVs already connected at each lead time
+        - 1h: 64.3% connected, 0 kW slack
+        - 3h: 12.2% connected, 0 kW slack
+        - 6h: 0.7% connected, 43.4 kW slack
+      • Right axis (green line): Median system slack in kW
+      • Inverse relationship: where EVs present, no slack; where slack exists,
+        no EVs → no room for anticipation
+
+✓ Figure 2: Main Trade-off (Scatter Plot)
+  ├─ File: paper_figures/figure_2_tradeoff.pdf (vector)
+  ├─ File: paper_figures/figure_2_tradeoff.png (300 dpi)
+  ├─ Title: "Main trade-off: energy vs. constraint satisfaction"
+  └─ Content:
+      Three points (verified values ± std):
+      • cap_only (blue):      2161.6 kWh, 0.00% violations (deterministic)
+      • no_forecast (orange):  1884.3 ± 34.9 kWh, 3.29 ± 0.94% violations
+      • forecast (green):      1899.0 ± 24.3 kWh, 3.00 ± 0.53% violations
+      • Story: cap_only dominates in top-right (high energy, zero 
+        violations); learned controllers overlap and underperform
+
+✗ Figure 3: Training Curves
+  └─ SKIPPED: Training reward logs were not saved during training
+     (reward logs not present in acn_exp_2x2_checkpoints/ or train_logs/)
+     
+     To enable Figure 3 in the future:
+     • Modify exp_2x2_run.py to log episode rewards during training
+     • Use stable-baselines3's Monitor CSV output or custom logging
+     • Save per-seed reward histories to JSON
+     • No retraining needed — only for future runs
+
+------------------------------------------------------------------------
+STYLE CONSISTENCY
+------------------------------------------------------------------------
+
+All figures use:
+  • IEEE single-column width: 3.5" × 2.4" (89mm × 61mm)
+  • Resolution: 300 dpi (publication-ready)
+  • Font: sans-serif, 10pt base, 9pt ticks, 11pt titles
+  • Color mapping (consistent across all figures):
+    - cap_only: #1f77b4 (blue)
+    - no_forecast: #ff7f0e (orange)
+    - forecast: #2ca02c (green)
+  • Grid: light (alpha=0.3), y-axis only
+  • Line width: 1.5 pt
+  • Marker size: 5-6 pt
+  • Save format: PDF (vector for IEEE) + PNG (preview/slides)
+
+------------------------------------------------------------------------
+DATA SOURCES
+------------------------------------------------------------------------
+
+Figure 1: Hardcoded from diagnose_forecast.py output (Part 3)
+  • % connected: [64.3, 12.2, 0.7] from lead-time feasibility analysis
+  • Median slack: [0.0, 0.0, 43.4] from per-lead-time evaluation
+
+Figure 2: Hardcoded from verified 2×2 results
+  • All values match acn_exp_2x2_results/*.json (5 seeds aggregated)
+  • cap_only: acn_exp_2x2_results/cap_only_seedna.json
+  • Means & stds computed in _verify_2x2.py
+
+Figure 3: Skipped (data not available)
+  • Training used stable-baselines3.Monitor but logs not structured
+  • Could add in future without retraining (just re-logging)
+
+------------------------------------------------------------------------
+VERIFICATION NOTES
+------------------------------------------------------------------------
+
+All hardcoded numbers were verified against source files before plotting:
+  • Sessions: 10,609 ✓
+  • Station count: 54 ✓
+  • Requested energy: 85.5% ✓
+  • Hourly steps: 8,742 ✓
+  • 2×2 results (Figure 2): All means/stds verified ✓
+  • Diagnostic numbers (Figure 1): All values confirmed ✓
+
+No experiments were run to generate these figures — they read only
+existing result files. Safe for rapid figure iteration.
+
+------------------------------------------------------------------------
+NEXT STEPS
+------------------------------------------------------------------------
+
+1. Copy figures to LaTeX manuscript:
+   \includegraphics[width=\columnwidth]{paper_figures/figure_1_lead_time.pdf}
+   \includegraphics[width=\columnwidth]{paper_figures/figure_2_tradeoff.pdf}
+
+2. If desired, add Figure 3 later:
+   • No retraining needed
+   • Just add reward logging to exp_2x2_run.py for next training run
+   • Re-run make_paper_figures.py to render
+
+3. Check PDF rendering in target IEEE template for exact sizing
+   • May need to adjust figsize FIGURE_SIZE_INCH if different column width
+   • Rerun make_paper_figures.py to regenerate at new size
+
+------------------------------------------------------------------------

@@ -1,0 +1,238 @@
+[2026-08-22 17:54:09] >>> START train_exp1_modelA_noforecast: train_single.py exp1_modelA_noforecast noforecast results/models/exp1_modelA_noforecast --seed 1
+[2026-08-22 18:13:58] <<< DONE train_exp1_modelA_noforecast in 19.8 min
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+[exp1_modelA_noforecast] DONE in 19.6 min | final train reward 369.51
+[2026-08-22 18:13:58] >>> START train_exp1_modelB_full: train_single.py exp1_modelB_full twin results/models/exp1_modelB_full --seed 1
+[2026-08-22 18:27:46] <<< DONE train_exp1_modelB_full in 13.8 min
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+[exp1_modelB_full] DONE in 13.5 min | final train reward 352.92
+[2026-08-22 18:27:46] >>> START train_exp2_modelC_no_pi: train_single.py exp2_modelC_no_pi nopi results/models/exp2_modelC_no_pi --seed 1
+[2026-08-22 18:39:21] <<< DONE train_exp2_modelC_no_pi in 11.6 min
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+[exp2_modelC_no_pi] DONE in 11.5 min | final train reward 257.53
+[2026-08-22 18:39:21] >>> START exp4: exp4_reward_sensitivity.py --skip-train
+[2026-08-22 19:17:18] <<< DONE exp4 in 38.0 min
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+R3: peak 103.86 kW | hard 0 | soft 0 | energy 75323.1 kWh | delivery 30.35% | total_reward 2573.79
+
+Saved results/reward_sensitivity/reward_sensitivity.csv
+  model  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  mean_power_kw  power_variance  energy_delivered_kwh  energy_delivery_pct  charging_cost  solar_utilization_pct  mean_tracking_error_kw  max_tracking_error_kw  mean_ramp_kw  max_ramp_kw  total_reward  mean_reward  std_reward config
+0    R0               0               0         115.72               61.93          81.95          411.36             105393.38                42.47       25672.55                  88.48                    3.66                  18.60          5.27        12.83       3810.53       2.9631      1.3850     R0
+1    R1               0               0         107.15               64.75          63.10          451.28              81145.29                32.70       19712.44                  78.39                    3.50                  21.73          6.00        16.01       3024.04       2.3515      1.3927     R1
+2    R2               0               0         100.73               66.86          63.17          386.27              81239.88                32.74       19561.72                  77.38                    3.50                  26.01          5.46        16.67       3015.50       2.3449      1.3753     R2
+3    R3               0               0         103.86               65.83          58.57          613.73              75323.10                30.35       18609.19                  78.27                    4.01                  23.92          6.45        17.08       2573.79       2.0014      1.7371     R3
+[2026-08-22 19:17:18] >>> START exp5: exp5_seed_stability.py --skip-train
+[2026-08-22 20:03:08] <<< DONE exp5 in 45.8 min
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+{'seed': 5, 'final_training_reward': 342.4592387, 'eval_total_reward': 4490.988922289462, 'hard_overloads': 0, 'soft_overloads': 0, 'peak_power_kw': 110.99, 'energy_delivered_kwh': 112250.06, 'charging_cost': 25503.224735063613, 'power_variance': 25.89207502473098}
+
+Saved results/statistics/twinev_seed_stability.csv
+   final_training_reward_mean  final_training_reward_std  final_training_reward_min  final_training_reward_max  eval_total_reward_mean  eval_total_reward_std  eval_total_reward_min  eval_total_reward_max  hard_overloads_mean  hard_overloads_std  hard_overloads_min  hard_overloads_max  soft_overloads_mean  soft_overloads_std  soft_overloads_min  soft_overloads_max  peak_power_kw_mean  peak_power_kw_std  peak_power_kw_min  peak_power_kw_max  energy_delivered_kwh_mean  energy_delivered_kwh_std  energy_delivered_kwh_min  energy_delivered_kwh_max  charging_cost_mean  charging_cost_std  charging_cost_min  charging_cost_max  power_variance_mean  power_variance_std  power_variance_min  power_variance_max
+0                  349.128627                   5.923862                 342.459239                 355.672021              4108.67234             458.743391            3759.648815            4715.352746                  0.0                 0.0                   0                   0                  0.0                 0.0                   0                   0             115.542           2.644517             110.99              117.6                  109712.15               5201.739517                 105393.38                 117682.87        25755.292228         659.779042       25042.175539       26832.987688           250.268768          198.658359           25.892075          411.363879
+[2026-08-22 20:03:08] >>> START exp8: exp8_service_constrained.py --skip-train
+[2026-08-22 20:51:30] <<< DONE exp8 in 48.4 min
+  This episode range: 7282 -> 8399
+
+Saved results/service_constrained/service_constrained_summary.csv
+           model     type  service_target_pct  energy_delivered_mwh  energy_delivery_pct  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  charging_cost  solar_utilization_pct  power_variance  mean_ramp_kw  max_ramp_kw  mean_tracking_error_kw  total_reward service_target_met  zero_hard_overload
+            FCFS baseline                 NaN               248.166               100.00            1225            1280         303.99                0.00       57270.41                  99.96          756.35         34.42       156.07                    0.00           NaN                NaN               False
+     Round Robin baseline                 NaN               192.900                77.73               0            1286         150.00               50.66       44491.79                  99.98            0.00          0.00         0.00                    0.00           NaN                NaN                True
+   Greedy 130 kW baseline                 NaN               167.149                67.35               0               0         130.00               57.24       38553.43                  96.20            0.19          0.05        10.53                    0.00           NaN                NaN                True
+ Original TwinEV       rl                 NaN               105.393                42.47               0               0         115.72               61.93       25672.55                  88.48          411.36          5.27        12.83                    3.66       3810.53                NaN                True
+twinev_service70       rl                70.0               192.895                77.73               0            1286         150.00               50.66       44490.64                  99.98            0.00          0.00         0.71                    0.00      -2400.97               True                True
+twinev_service80       rl                80.0               192.895                77.73               0            1286         150.00               50.66       44490.64                  99.98            0.00          0.00         0.71                    0.00      -2400.97              False                True
+twinev_service90       rl                90.0               192.895                77.73               0            1286         150.00               50.66       44490.64                  99.98            0.00          0.00         0.71                    0.00      -2400.97              False                True
+twinev_service95       rl                95.0               192.498                77.57               0            1286         150.00               50.66       44314.34                  99.98            1.06          0.37         8.81                    0.18      -2313.63              False                True
+
+Physical service ceiling with 150 kW cap: 77.73%
+(constant 150 kW output over the test window)
+[2026-08-22 20:51:30] >>> START exp10_train: exp10_mo_train.py --skip-train
+[2026-08-22 22:14:44] <<< DONE exp10_train in 83.2 min
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+  MO_NO_SMOOTHNESS done in 12.02 min | final episode reward 103.77
+
+Training phase complete.
+[2026-08-22 22:14:44] >>> START exp1_eval: exp1_forecast_ablation.py --skip-train
+[2026-08-22 22:15:06] <<< DONE exp1_eval in 0.4 min
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+A_ppo_no_forecast: peak 110.73 kW | hard 0 | soft 0 | energy 109523.95 kWh | total_reward 4062.21
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+B_full_twinev: peak 115.72 kW | hard 0 | soft 0 | energy 105393.38 kWh | total_reward 3810.53
+
+Saved results/ablation/forecast_ablation.csv
+               model  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  mean_power_kw  power_variance  energy_delivered_kwh  energy_delivery_pct  charging_cost  solar_utilization_pct  mean_tracking_error_kw  max_tracking_error_kw  mean_ramp_kw  max_ramp_kw  total_reward  mean_reward  std_reward forecast_in_state
+0  A_ppo_no_forecast               0               0         110.73               63.57          85.17           73.07             109523.95                44.13       25676.94                  82.08                    1.65                  19.34          2.02        16.47       4062.21       3.1588      1.1603                no
+1      B_full_twinev               0               0         115.72               61.93          81.95          411.36             105393.38                42.47       25672.55                  88.48                    3.66                  18.60          5.27        12.83       3810.53       2.9631      1.3850               yes
+[2026-08-22 22:15:06] >>> START exp2_eval: exp2_pi_ablation.py --skip-train
+[2026-08-22 22:15:18] <<< DONE exp2_eval in 0.2 min
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+Saved results/ablation/pi_ablation.csv
+                model  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  mean_power_kw  power_variance  energy_delivered_kwh  energy_delivery_pct  charging_cost  solar_utilization_pct  mean_tracking_error_kw  max_tracking_error_kw  mean_ramp_kw  max_ramp_kw  total_reward  mean_reward  std_reward pi_layer
+0  C_bilstm_ppo_no_pi               0               0          73.34               75.87          45.99          375.48              59149.37                23.83       14137.08                  63.24                    0.00                    0.0          3.60        28.29       2233.13       1.7365      0.8872       no
+1     D_bilstm_ppo_pi               0               0         115.72               61.93          81.95          411.36             105393.38                42.47       25672.55                  88.48                    3.66                   18.6          5.27        12.83       3810.53       2.9631      1.3850      yes
+[2026-08-22 22:15:18] >>> START exp2b: exp2b_pi_isolation.py
+[2026-08-22 22:15:26] <<< DONE exp2b in 0.1 min
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+              command  mean_ramp_kw  max_ramp_kw  power_variance  peak_power_kw  mean_power_kw
+direct_setpoint_no_pi          4.29        14.20          270.64         108.70          81.98
+            pi_output          5.27        12.83          411.36         115.72          81.95
+Saved results/ablation/pi_isolated_same_command.csv
+[2026-08-22 22:15:26] >>> START exp3: exp3_comparison.py
+[2026-08-22 22:15:37] <<< DONE exp3 in 0.2 min
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+Saved results/comparison/all_models.csv
+Saved results/comparison/main_results_table.csv
+               model      type  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  mean_power_kw  power_variance  energy_delivered_kwh  energy_delivery_pct  charging_cost  solar_utilization_pct  mean_tracking_error_kw  mean_ramp_kw  max_ramp_kw  total_reward
+0         Raw Demand  baseline            1225            1280         303.99                0.00         192.97          756.35             248165.65               100.00       57270.41                  99.96                    0.00         34.42       156.07           NaN
+1               FCFS  baseline            1225            1280         303.99                0.00         192.97          756.35             248165.65               100.00       57270.41                  99.96                    0.00         34.42       156.07           NaN
+2        Round Robin  baseline               0            1286         150.00               50.66         150.00            0.00             192900.00                77.73       44491.79                  99.98                    0.00          0.00         0.00           NaN
+3             Greedy  baseline               0               0         130.00               57.24         129.98            0.19             167148.95                67.35       38553.43                  96.20                    0.00          0.05        10.53           NaN
+4           PPO + PI        rl               0               0         110.73               63.57          85.17           73.07             109523.95                44.13       25676.94                  82.08                    1.65          2.02        16.47       4062.21
+5       BiLSTM + PPO        rl               0               0          73.34               75.87          45.99          375.48              59149.37                23.83       14137.08                  63.24                    0.00          3.60        28.29       2233.13
+6  BiLSTM + PPO + PI        rl               0               0         115.72               61.93          81.95          411.36             105393.38                42.47       25672.55                  88.48                    3.66          5.27        12.83       3810.53
+[2026-08-22 22:15:37] >>> START exp6: exp6_forecast_comparison.py
+[2026-08-22 22:15:41] <<< DONE exp6 in 0.1 min
+Train target: 5997 | Val: 1285 | Test: 1286
+Fitting ARIMA(5,1,0) on the training segment...
+ARIMA    RMSE   28.279  MAE   22.954  MAPE  12.695%
+LSTM     RMSE   26.863  MAE   21.432  MAPE  11.407%
+BiLSTM   RMSE   25.952  MAE   20.565  MAPE  10.906%
+
+Saved results/forecasting/forecast_model_comparison.csv
+[2026-08-22 22:15:41] >>> START exp7: exp7_stress_test.py
+[2026-08-22 22:15:55] <<< DONE exp7 in 0.2 min
+===== Scenario: demand_spike =====
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+peak 115.72 kW | hard 0 | soft 0 | energy 105395.72 kWh | total_reward 3810.58
+
+Saved results/stress_tests/stress_test_results.csv
+          model  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  mean_power_kw  power_variance  energy_delivered_kwh  energy_delivery_pct  charging_cost  solar_utilization_pct  mean_tracking_error_kw  max_tracking_error_kw  mean_ramp_kw  max_ramp_kw  total_reward  mean_reward  std_reward                                                                     description
+0        normal               0               0         115.72               61.93          81.95          411.36             105393.38                42.47       25672.55                  88.48                    3.66                  18.60          5.27        12.83       3810.53       2.9631      1.3850                                                      unmodified test conditions
+1   high_demand               0               1         142.81               53.02          82.25          404.94             105775.48                42.62       25746.85                  88.47                    3.66                  49.55          5.24        31.23       3406.76       2.6491      1.3917                                       EV demand +50%, queue +50%, forecast +50%
+2     low_solar               0               0         112.30               63.06          80.30          353.62             103263.94                41.61       25013.85                  86.59                    3.41                  19.79          4.99        14.90       3052.11       2.3733      0.8798                                                 solar generation reduced to 30%
+3    high_price               0               0         115.34               62.06          79.74          427.95             102543.73                41.32       24928.08                  88.01                    3.67                  18.81          5.33        13.10       3337.84       2.5955      1.3747                                         electricity price x1.8 (capped at 0.55)
+4  demand_spike               0               0         115.72               61.93          81.96          411.45             105395.72                42.47       25673.20                  88.48                    3.66                  18.60          5.27        12.83       3810.58       2.9631      1.3851  brief +100 kW surge (6 h) on low-demand hours, crossing the overload threshold
+[2026-08-22 22:15:55] >>> START exp9: exp9_capacity_tradeoff.py
+[2026-08-22 22:16:22] <<< DONE exp9 in 0.5 min
+Saved results/capacity_tradeoff/service70_capacity_analysis.csv
+
+Saved results/capacity_tradeoff/capacity_tradeoff_summary.csv
+ power_cap_kw  theoretical_service_pct  greedy_service_pct  twinev_service70_pct  hard_overloads  soft_overloads  energy_delivered_mwh  charging_cost_eur
+          110                    57.00               57.00                 57.00               0               0               141.460           32627.31
+          120                    62.18               62.18                 62.18               0               0               154.320           35593.43
+          125                    64.78               64.77                 64.78               0               0               160.750           37076.49
+          130                    67.37               67.35                 67.37               0               0               167.180           38559.55
+          135                    69.96               69.93                 69.96               0            1286               173.610           40042.61
+          140                    72.55               72.48                 72.55               0            1286               180.040           41525.67
+          145                    75.14               75.01                 75.14               0            1286               186.470           43008.73
+          150                    77.73               77.49                 77.73               0            1286               192.895           44490.64
+Saved results/plots/capacity_tradeoff_summary.png
+
+Experiment 9 complete.
+[2026-08-22 22:16:22] >>> START exp10_eval: exp10_mo_eval.py
+[2026-08-22 22:16:34] !!! FAILED exp10_eval (rc=1, 0.2 min)
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+Traceback (most recent call last):
+  File "C:\Users\arham\Downloads\TwinEV-LSTM-PPO-PI-main final\TwinEV-LSTM-PPO-PI-main\exp10_mo_eval.py", line 184, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\arham\Downloads\TwinEV-LSTM-PPO-PI-main final\TwinEV-LSTM-PPO-PI-main\exp10_mo_eval.py", line 147, in main
+    if reward_info is not None:
+       ^^^^^^^^^^^
+NameError: name 'reward_info' is not defined

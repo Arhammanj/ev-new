@@ -1,0 +1,29 @@
+Loading baselines...
+Loading RL policies...
+Evaluating all controllers over the same test window...
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+Saved results/comparison/all_models.csv
+Saved results/comparison/main_results_table.csv
+               model      type  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  mean_power_kw  power_variance  energy_delivered_kwh  energy_delivery_pct  charging_cost  solar_utilization_pct  mean_tracking_error_kw  mean_ramp_kw  max_ramp_kw  total_reward
+0         Raw Demand  baseline            1225            1280         303.99                0.00         192.97          756.35             248165.65               100.00       57270.41                  99.96                    0.00         34.42       156.07           NaN
+1               FCFS  baseline            1225            1280         303.99                0.00         192.97          756.35             248165.65               100.00       57270.41                  99.96                    0.00         34.42       156.07           NaN
+2        Round Robin  baseline               0            1286         150.00               50.66         150.00            0.00             192900.00                77.73       44491.79                  99.98                    0.00          0.00         0.00           NaN
+3             Greedy  baseline               0               0         130.00               57.24         129.98            0.19             167148.95                67.35       38553.43                  96.20                    0.00          0.05        10.53           NaN
+4           PPO + PI        rl               0               0         110.73               63.57          85.17           73.07             109523.95                44.13       25676.94                  82.08                    1.65          2.02        16.47       4062.21
+5       BiLSTM + PPO        rl               0               0          73.34               75.87          45.99          375.48              59149.37                23.83       14137.08                  63.24                    0.00          3.60        28.29       2233.13
+6  BiLSTM + PPO + PI        rl               0               0         115.72               61.93          81.95          411.36             105393.38                42.47       25672.55                  88.48                    3.66          5.27        12.83       3810.53

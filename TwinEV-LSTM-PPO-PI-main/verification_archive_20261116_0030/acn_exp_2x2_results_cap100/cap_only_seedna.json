@@ -1,0 +1,1 @@
+{"condition": "cap_only", "seed": "na", "horizon": 6, "capacity_kw": 100.0, "violation_rate": 0.0, "unmet_fraction": 0.14915466859039977, "delivered_kwh": 2245.0386919671987}

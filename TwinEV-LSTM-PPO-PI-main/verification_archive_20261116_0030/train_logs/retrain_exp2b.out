@@ -1,0 +1,9 @@
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+              command  mean_ramp_kw  max_ramp_kw  power_variance  peak_power_kw  mean_power_kw
+direct_setpoint_no_pi          4.29        14.20          270.64         108.70          81.98
+            pi_output          5.27        12.83          411.36         115.72          81.95
+Saved results/ablation/pi_isolated_same_command.csv

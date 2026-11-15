@@ -1,0 +1,20 @@
+{
+  "penalty_ppo": {
+    "violation_rate": 0.027380952380952384,
+    "unmet_fraction": 0.2720969771570759,
+    "delivered_kwh": 1899.1122939293466,
+    "safety_filter_interventions": 0,
+    "training_safety_filter_calls": 0,
+    "training_safety_filter_interventions": 0,
+    "evaluation_safety_filter_calls": 0
+  },
+  "safety_filtered_ppo": {
+    "violation_rate": 0.0,
+    "unmet_fraction": 0.22965925986707156,
+    "delivered_kwh": 2024.6659656933407,
+    "safety_filter_interventions": 840,
+    "training_safety_filter_calls": 301056,
+    "training_safety_filter_interventions": 301056,
+    "evaluation_safety_filter_calls": 840
+  }
+}

@@ -159,6 +159,8 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         violation_softness_kw: float = 25.0,
         action_floor_kw: float = 0.0,
         symmetric_action: bool = False,
+        hard_safety_filter: bool = False,
+        safety_margin_kw: float = 1e-4,
     ) -> None:
         super().__init__()
         lo, hi = allowed_start_range
@@ -183,6 +185,10 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         self.violation_softness_kw = violation_softness_kw
         self.action_floor_kw = action_floor_kw
         self.symmetric_action = symmetric_action
+        self.hard_safety_filter = hard_safety_filter
+        if safety_margin_kw < 0 or safety_margin_kw >= transformer_limit_kw:
+            raise ValueError("safety_margin_kw must be in [0, transformer_limit_kw)")
+        self.safety_margin_kw = float(safety_margin_kw)
         self._rng = np.random.default_rng(seed)
 
         n_slots = len(slot_roster)
@@ -211,6 +217,8 @@ class ACNWeeklyEpisodeEnv(gym.Env):
             )
 
         self.inner: Optional[ACNChargingEnv] = None
+        self.safety_filter_calls = 0
+        self.safety_filter_interventions = 0
 
     def _augment(self, obs: np.ndarray) -> np.ndarray:
         if self.forecast is None:
@@ -243,9 +251,32 @@ class ACNWeeklyEpisodeEnv(gym.Env):
         return self._augment(obs), info
 
     def step(self, action):
+        safety_filter_intervened = False
         if self.symmetric_action:
             action = symmetric_to_kw(np.asarray(action, dtype=np.float64), self.per_ev_max_kw)
+        if self.hard_safety_filter:
+            self.safety_filter_calls += 1
+            requested_action = np.asarray(action, dtype=np.float64).copy()
+            action = safety_filter_action(
+                self.inner,
+                requested_action,
+                safety_margin_kw=self.safety_margin_kw,
+            )
+            safety_filter_intervened = not np.allclose(
+                np.asarray(action, dtype=np.float64),
+                requested_action,
+                rtol=0.0,
+                atol=1e-6,
+            )
+            if safety_filter_intervened:
+                self.safety_filter_interventions += 1
         obs, reward, terminated, truncated, info = self.inner.step(action)
+        if self.hard_safety_filter:
+            info = {
+                **info,
+                "safety_filter_applied": True,
+                "safety_filter_intervened": safety_filter_intervened,
+            }
         return self._augment(obs), reward, terminated, truncated, info
 
 
@@ -278,6 +309,38 @@ def cap_only_action(env: ACNChargingEnv) -> np.ndarray:
     return max_deliverable_kw.astype(np.float32)
 
 
+def safety_filter_action(
+    env: ACNChargingEnv,
+    action_kw: np.ndarray,
+    safety_margin_kw: float = 1e-4,
+) -> np.ndarray:
+    """Project a requested action onto the measured transformer capacity.
+
+    The projection preserves per-slot priorities while applying a single
+    proportional scale when the aggregate request would exceed capacity.
+    It is deliberately outside the reward: both ordinary PPO and filtered
+    PPO can therefore be compared on the same underlying environment.
+    """
+    action = np.asarray(action_kw, dtype=np.float64)
+    if action.shape != (env.n_slots,):
+        raise ValueError(
+            f"action shape {action.shape} does not match ({env.n_slots},)"
+        )
+    present = env.true_presence()
+    remaining = env.true_remaining_kwh()
+    max_kw = np.where(
+        present,
+        np.minimum(env.per_ev_max_kw, remaining / env.dt_hours),
+        0.0,
+    )
+    requested = np.clip(action, 0.0, max_kw)
+    target = env.transformer_limit_kw - float(safety_margin_kw)
+    total = float(requested.sum())
+    if total > target and total > 0:
+        requested *= target / total
+    return requested.astype(np.float32)
+
+
 # ==========================================
 # Episode reward tracking callback (for "does reward increase?")
 # ==========================================
@@ -307,6 +370,7 @@ def evaluate_policy_on_weeks(
     """`action_fn(env, obs)` -> action. Reports the same diagnostics
     as smoke_test_env.py, averaged over the given start weeks."""
     violation_rates, unmet_fractions, delivered_kwhs = [], [], []
+    filter_interventions = 0
     for start_step in start_steps:
         obs, _ = env.reset(start_step=start_step)
         total_requested = float(sum(s.requested_kwh for s in env.inner.data.sessions))
@@ -320,6 +384,8 @@ def evaluate_policy_on_weeks(
             total_unmet += info["unmet_kwh_this_step"]
             if info["violation_kw"] > 0:
                 n_violating += 1
+            if info.get("safety_filter_intervened", False):
+                filter_interventions += 1
             if terminated or truncated:
                 break
         violation_rates.append(n_violating / env.episode_len)
@@ -330,6 +396,7 @@ def evaluate_policy_on_weeks(
         "violation_rate": float(np.mean(violation_rates)),
         "unmet_fraction": float(np.mean(unmet_fractions)),
         "delivered_kwh": float(np.mean(delivered_kwhs)),
+        "safety_filter_interventions": filter_interventions,
     }
 
 

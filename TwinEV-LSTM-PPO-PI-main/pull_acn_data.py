@@ -16,7 +16,7 @@ if not token:
 client = acndata.DataClient(api_token=token)
 tz = pytz.timezone("America/Los_Angeles")
 
-SITE  = "caltech"          # options: "caltech", "jpl", "office001"
+SITE  = os.environ.get("ACN_SITE", "caltech")  # caltech, jpl, office001
 START = tz.localize(datetime(2019, 1, 1))
 END   = tz.localize(datetime(2019, 12, 31))   # full year for a real train/test split
 

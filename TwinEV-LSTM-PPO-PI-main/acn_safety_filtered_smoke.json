@@ -1,0 +1,12 @@
+{
+  "penalty_ppo": {
+    "violation_rate": 0.0488095238095238,
+    "unmet_fraction": 0.2895195953046453,
+    "delivered_kwh": 1893.347745691753
+  },
+  "safety_filtered_ppo": {
+    "violation_rate": 0.0,
+    "unmet_fraction": 0.30135114020594506,
+    "delivered_kwh": 1853.543718043952
+  }
+}

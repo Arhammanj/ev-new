@@ -1,0 +1,161 @@
+
+===== Training twinev_service70 (target 70%) =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+  twinev_service70 trained in 12.43 min | final mean episode reward -116.70
+
+===== Training twinev_service80 (target 80%) =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+  twinev_service80 trained in 12.07 min | final mean episode reward -1219.84
+
+===== Training twinev_service90 (target 90%) =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+  twinev_service90 trained in 11.80 min | final mean episode reward -1665.68
+
+===== Training twinev_service95 (target 95%) =====
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 0 -> 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 5997 -> 7113
+  twinev_service95 trained in 11.75 min | final mean episode reward -2612.44
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+[twinev_service70] target 70% -> service 77.73% | hard 0 soft 1286 | peak 150.0 | met=True
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+[twinev_service80] target 80% -> service 77.73% | hard 0 soft 1286 | peak 150.0 | met=False
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+[twinev_service90] target 90% -> service 77.73% | hard 0 soft 1286 | peak 150.0 | met=False
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+[twinev_service95] target 95% -> service 77.57% | hard 0 soft 1286 | peak 150.0 | met=False
+
+Saved results/service_constrained/service_constrained_results.csv
+Environment [test] loaded: 8568 total hours
+  Train: 0 -> 5997 hrs
+  Val  : 5997 -> 7282 hrs
+  Test : 7282 -> 8568 hrs
+  This episode range: 7282 -> 8399
+
+Saved results/service_constrained/service_constrained_summary.csv
+           model     type  service_target_pct  energy_delivered_mwh  energy_delivery_pct  hard_overloads  soft_overloads  peak_power_kw  peak_reduction_pct  charging_cost  solar_utilization_pct  power_variance  mean_ramp_kw  max_ramp_kw  mean_tracking_error_kw  total_reward service_target_met  zero_hard_overload
+            FCFS baseline                 NaN               248.166               100.00            1225            1280         303.99                0.00       57270.41                  99.96          756.35         34.42       156.07                    0.00           NaN                NaN               False
+     Round Robin baseline                 NaN               192.900                77.73               0            1286         150.00               50.66       44491.79                  99.98            0.00          0.00         0.00                    0.00           NaN                NaN                True
+   Greedy 130 kW baseline                 NaN               167.149                67.35               0               0         130.00               57.24       38553.43                  96.20            0.19          0.05        10.53                    0.00           NaN                NaN                True
+ Original TwinEV       rl                 NaN               105.393                42.47               0               0         115.72               61.93       25672.55                  88.48          411.36          5.27        12.83                    3.66       3810.53                NaN                True
+twinev_service70       rl                70.0               192.895                77.73               0            1286         150.00               50.66       44490.64                  99.98            0.00          0.00         0.71                    0.00      -2400.97               True                True
+twinev_service80       rl                80.0               192.895                77.73               0            1286         150.00               50.66       44490.64                  99.98            0.00          0.00         0.71                    0.00      -2400.97              False                True
+twinev_service90       rl                90.0               192.895                77.73               0            1286         150.00               50.66       44490.64                  99.98            0.00          0.00         0.71                    0.00      -2400.97              False                True
+twinev_service95       rl                95.0               192.498                77.57               0            1286         150.00               50.66       44314.34                  99.98            1.06          0.37         8.81                    0.18      -2313.63              False                True
+
+Physical service ceiling with 150 kW cap: 77.73%
+(constant 150 kW output over the test window)

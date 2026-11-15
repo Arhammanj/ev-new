@@ -1,0 +1,27 @@
+[exp4R3] reward weights: {'description': 'Service-oriented (emphasize energy/solar delivery, relax safety)', 'grid': 2.0, 'solar': 2.0, 'queue': 1.0, 'price': 1.0, 'pi_error': 0.2, 'lookahead_bonus_weight': 0.3}
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 5997 → 7113
+[exp4R3] DONE in 36.1 min | final train reward 416.00

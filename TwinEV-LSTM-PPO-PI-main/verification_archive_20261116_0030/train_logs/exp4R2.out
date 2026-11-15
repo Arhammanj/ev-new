@@ -1,0 +1,27 @@
+[exp4R2] reward weights: {'description': 'Balanced weights across grid/solar/queue/price/tracking', 'grid': 1.5, 'solar': 1.5, 'queue': 1.5, 'price': 1.5, 'pi_error': 0.5, 'lookahead_bonus_weight': 0.3}
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [train] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 0 → 5828
+Environment [val] loaded: 8568 total hours
+  Train: 0 → 5997 hrs
+  Val  : 5997 → 7282 hrs
+  Test : 7282 → 8568 hrs
+  This episode range: 5997 → 7113
+[exp4R2] DONE in 36.2 min | final train reward 372.81
