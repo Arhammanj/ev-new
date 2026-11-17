@@ -1,0 +1,2 @@
+target,n,bilstm_raw_correlation,bilstm_hour_of_week_residual_correlation,seasonal_naive_raw_correlation,seasonal_naive_hour_of_week_residual_correlation
+future_max_6h_achievable_draw_kw,8542,0.8633438259508704,0.2621787922920313,0.8494129829595721,0.2695121542901546

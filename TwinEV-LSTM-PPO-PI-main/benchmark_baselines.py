@@ -80,14 +80,75 @@ def rolling_horizon_mpc_action(env, horizon_hours: int = 6) -> np.ndarray:
     return np.asarray(result.x, dtype=np.float32)
 
 
+def multistep_mpc_action(env, horizon_hours: int = 6) -> np.ndarray:
+    """Solve a finite-horizon LP using only the current EV state.
+
+    Future arrivals are intentionally excluded: the controller predicts the
+    evolution of vehicles already connected, then re-solves after each step.
+    The returned first action is therefore a genuine receding-horizon action,
+    rather than a one-step urgency score.
+    """
+    present, deadlines, max_kw = _available(env)
+    n_slots = len(max_kw)
+    horizon = max(1, int(horizon_hours))
+    remaining = env.inner.true_remaining_kwh()
+    step_idx = env.inner._step_idx
+    dt = env.inner.dt_hours
+    n_vars = n_slots * horizon
+    objective = np.zeros(n_vars, dtype=np.float64)
+    bounds = []
+    for t in range(horizon):
+        for slot in range(n_slots):
+            active = bool(present[slot] and step_idx + t < deadlines[slot])
+            upper = float(max_kw[slot]) if active else 0.0
+            bounds.append((0.0, upper))
+            # Prefer energy for EVs with less time remaining. The small
+            # tie-break rewards useful current delivery without changing
+            # feasibility or making the objective depend on future data.
+            steps_left = max(1, int(deadlines[slot] - (step_idx + t)))
+            objective[t * n_slots + slot] = -(
+                1.0 / steps_left + 1e-3 / (t + 1)
+            )
+
+    constraints = []
+    limits = []
+    for t in range(horizon):
+        row = np.zeros(n_vars, dtype=np.float64)
+        row[t * n_slots:(t + 1) * n_slots] = 1.0
+        constraints.append(row)
+        limits.append(env.transformer_limit_kw - 1e-4)
+    for slot in range(n_slots):
+        row = np.zeros(n_vars, dtype=np.float64)
+        for t in range(horizon):
+            row[t * n_slots + slot] = dt
+        constraints.append(row)
+        limits.append(float(remaining[slot]))
+
+    result = linprog(
+        c=objective,
+        A_ub=np.asarray(constraints),
+        b_ub=np.asarray(limits),
+        bounds=bounds,
+        method="highs",
+    )
+    if not result.success:
+        raise RuntimeError(f"multi-step MPC allocation failed: {result.message}")
+    return np.asarray(result.x[:n_slots], dtype=np.float32)
+
+
 def run() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--capacity-kw", type=float, default=50.0)
     parser.add_argument("--horizon-hours", type=int, default=6)
+    parser.add_argument(
+        "--mpc-mode", choices=["one_step", "multi_step"], default="multi_step",
+        help="Use the historical urgency LP or the finite-horizon LP.",
+    )
     parser.add_argument("--output", default="acn_benchmark_results.json")
+    parser.add_argument("--data-path", default="acn_caltech_2019.csv")
     args = parser.parse_args()
 
-    setup = shared_setup()
+    setup = shared_setup(use_forecast=False, data_path=args.data_path)
     env = ACNWeeklyEpisodeEnv(
         setup["full_data"],
         setup["slot_roster"],
@@ -96,12 +157,14 @@ def run() -> None:
         seed=999,
     )
     results = {}
+    mpc_fn = (
+        multistep_mpc_action
+        if args.mpc_mode == "multi_step"
+        else rolling_horizon_mpc_action
+    )
     for name, fn in (
         ("earliest_deadline", lambda e, _: earliest_deadline_action(e)),
-        (
-            "rolling_horizon_mpc",
-            lambda e, _: rolling_horizon_mpc_action(e, args.horizon_hours),
-        ),
+        (f"{args.mpc_mode}_mpc", lambda e, _: mpc_fn(e, args.horizon_hours)),
     ):
         results[name] = evaluate_policy_on_weeks(env, setup["test_starts"], fn)
     with open(args.output, "w") as handle:

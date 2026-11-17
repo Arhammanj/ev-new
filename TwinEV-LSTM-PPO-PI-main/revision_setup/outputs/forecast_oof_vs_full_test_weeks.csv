@@ -1,0 +1,2 @@
+test_week_rows,max_abs_predicted_difference_kw,max_abs_predicted_difference_at,full_predicted_at_max,oof_predicted_at_max,mean_abs_predicted_difference_kw,max_abs_actual_difference,oof_model
+840,153.47218933105466,2019-12-27T14:41:45+00:00,293.4,139.9278106689453,13.045961763079315,5.684341886080802e-14,blocked expanding-fold BiLSTM (revision_setup/oof_forecast.py); test weeks are in the final held-out fold

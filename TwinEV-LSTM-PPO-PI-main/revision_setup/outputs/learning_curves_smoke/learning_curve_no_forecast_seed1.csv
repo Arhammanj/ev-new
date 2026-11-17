@@ -1,0 +1,2 @@
+seed,condition,timesteps,validation_starts,validation_reward_mean,validation_violation_rate,validation_unmet_fraction,validation_delivered_kwh
+1,no_forecast,10000,6118;6403;6689;6974;7260,-279.2225321054252,0.06309523809523808,0.3092703258755879,2250.2609599466136

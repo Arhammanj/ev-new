@@ -26,10 +26,19 @@ def main() -> None:
                              "whatever limit its env is built with (cap_only_action() "
                              "reads env.transformer_limit_kw dynamically), so this is "
                              "always a cheap non-learning re-evaluation, never training.")
+    parser.add_argument("--data-path", default="acn_caltech_2019.csv")
+    parser.add_argument("--timestep-minutes", type=int, choices=[15, 30, 60], default=60)
     args = parser.parse_args()
-    _, results_dir = run_dirs(args.horizon, args.capacity_kw)
+    _, results_dir = run_dirs(
+        args.horizon, args.capacity_kw, args.timestep_minutes
+    )
 
-    setup = shared_setup(args.horizon)
+    setup = shared_setup(
+        args.horizon,
+        data_path=args.data_path,
+        use_forecast=False,
+        timestep_minutes=args.timestep_minutes,
+    )
     print(f"Shared test weeks: {setup['test_starts']}")
     eval_env = make_env(setup, "no_forecast", seed=999, allowed_start_range=setup["test_range"],
                         capacity_kw=args.capacity_kw)
@@ -45,6 +54,7 @@ def main() -> None:
     row = {
         "condition": "cap_only", "seed": "na", "horizon": args.horizon,
         "capacity_kw": args.capacity_kw,
+        "timestep_minutes": args.timestep_minutes,
         "violation_rate": result["violation_rate"],
         "unmet_fraction": result["unmet_fraction"],
         "delivered_kwh": result["delivered_kwh"],

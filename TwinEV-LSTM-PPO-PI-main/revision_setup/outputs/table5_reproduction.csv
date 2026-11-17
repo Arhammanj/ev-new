@@ -1,0 +1,7 @@
+horizon_hours,vehicle_pairs,vehicle_connected_percent,vehicle_median_slack_kw,hour_risk_hours,hour_median_A,hour_median_S_kw,paper_connected_percent,paper_median_slack_kw,vehicle_matches_paper,hour_matches_paper,scope
+1,13261,64.45215292964332,0.0,902,0.6260382753403319,0.0,64.3,0.0,False,False,full_year
+3,13261,13.498227886283084,0.0,902,0.07490080229973234,36.8,12.2,0.0,False,False,full_year
+6,13261,1.696704622577483,43.4,902,0.0,50.0,0.7,43.4,False,False,full_year
+1,1066,64.25891181988743,0.0,71,0.6066465743436353,0.0,64.3,0.0,True,False,test_weeks
+3,1066,12.195121951219512,0.0,71,0.04525862372935472,41.016,12.2,0.0,True,False,test_weeks
+6,1066,0.6566604127579738,43.4,71,0.0,50.0,0.7,43.4,True,False,test_weeks

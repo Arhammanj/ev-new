@@ -1,0 +1,4 @@
+dataset,sessions,median_session_duration_hours,p95_session_duration_hours,median_requested_kwh,median_delivered_kwh,median_connected_evs,p95_connected_evs,mean_greedy_kw,p95_greedy_kw,risk_hour_fraction,headroom_median_kw,requested_energy_supported
+Caltech,10609,5.817777777777778,11.580833333333336,15.0,6.233,3.0,25.0,49.53730778032036,161.79999999999998,0.3180778032036613,30.200000000000003,False
+JPL,17356,8.441944444444445,11.099444444444444,20.0,11.508,2.0,52.0,103.94461917871071,343.2,0.3692360633172746,36.8,False
+Office001,920,5.9030555555555555,9.855541666666666,,12.35,0.0,4.0,,,,,False

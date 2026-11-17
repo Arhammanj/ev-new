@@ -1,0 +1,26 @@
+[
+  {
+    "timestep_minutes": 60,
+    "sessions": 10609,
+    "slots": 54,
+    "steps": 8740,
+    "start_time": "2019-01-01 17:41:45+00:00",
+    "end_time": "2019-12-31 21:41:45+00:00",
+    "greedy_peak_kw": 222.303,
+    "greedy_mean_kw": 50.76272859550971,
+    "fraction_above_capacity": 0.31933638443935924,
+    "p95_kw": 165.18134999999992
+  },
+  {
+    "timestep_minutes": 15,
+    "sessions": 10609,
+    "slots": 54,
+    "steps": 34959,
+    "start_time": "2019-01-01 17:41:45+00:00",
+    "end_time": "2019-12-31 21:26:45+00:00",
+    "greedy_peak_kw": 242.35199999999998,
+    "greedy_mean_kw": 48.479736235611725,
+    "fraction_above_capacity": 0.2938299150433365,
+    "p95_kw": 168.33439999999996
+  }
+]

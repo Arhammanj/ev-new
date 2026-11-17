@@ -94,14 +94,23 @@ def add_calendar(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def add_lag_features(df: pd.DataFrame, source_col: str) -> pd.DataFrame:
+def add_lag_features(
+    df: pd.DataFrame,
+    source_col: str,
+    steps_per_hour: int = 1,
+) -> pd.DataFrame:
     """Lag/rolling features computed from `source_col`, all safely
     past-referencing (shift(1) before rolling excludes the current row)."""
+    if steps_per_hour <= 0:
+        raise ValueError("steps_per_hour must be positive")
+    day_steps = 24 * steps_per_hour
+    week_steps = 168 * steps_per_hour
+    rolling_steps = day_steps
     df["lag1"] = df[source_col].shift(1)
-    df["lag24"] = df[source_col].shift(24)
-    df["lag168"] = df[source_col].shift(168)
-    df["rolling_mean_24"] = df[source_col].shift(1).rolling(24).mean()
-    df["rolling_std_24"] = df[source_col].shift(1).rolling(24).std()
+    df["lag24"] = df[source_col].shift(day_steps)
+    df["lag168"] = df[source_col].shift(week_steps)
+    df["rolling_mean_24"] = df[source_col].shift(1).rolling(rolling_steps).mean()
+    df["rolling_std_24"] = df[source_col].shift(1).rolling(rolling_steps).std()
     return df
 
 

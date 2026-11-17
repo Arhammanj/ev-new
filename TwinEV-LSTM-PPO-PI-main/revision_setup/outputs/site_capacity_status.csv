@@ -1,0 +1,4 @@
+site,file,raw_sessions,positive_requested_sessions,requested_energy_coverage_percent,capacity_rule,selected_capacity_kw,status
+Caltech,C:\Users\arham\Downloads\ev-new-feature-acn-charging-env\ev-new-feature-acn-charging-env\TwinEV-LSTM-PPO-PI-main\acn_caltech_2019.csv,10609,9067,85.46517108115751,90th percentile full-grid greedy draw,51.48300020833016,supported
+JPL,C:\Users\arham\Downloads\ev-new-feature-acn-charging-env\ev-new-feature-acn-charging-env\TwinEV-LSTM-PPO-PI-main\acn_jpl_2019.csv,17356,16796,96.77345010371053,90th percentile full-grid greedy draw,139.70380062942505,supported
+Office001,C:\Users\arham\Downloads\ev-new-feature-acn-charging-env\ev-new-feature-acn-charging-env\TwinEV-LSTM-PPO-PI-main\acn_office001_2019.csv,920,0,0.0,90th percentile full-grid greedy draw,6.6000001373291015,excluded_no_requested_energy

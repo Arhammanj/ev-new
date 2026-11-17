@@ -1,0 +1,28 @@
+{
+  "rows": [
+    {
+      "violation_rate": 0.0,
+      "unmet_fraction": 0.22474250999468248,
+      "delivered_kwh": 2046.8441498315656,
+      "safety_filter_interventions": 840,
+      "condition": "no_forecast",
+      "seed": 3,
+      "capacity_kw": 50.0,
+      "timesteps": 300000,
+      "training_filter_interventions": 301056,
+      "evaluation_filter_interventions": 840
+    },
+    {
+      "violation_rate": 0.0,
+      "unmet_fraction": 0.22114333418118504,
+      "delivered_kwh": 2042.955709029056,
+      "safety_filter_interventions": 840,
+      "condition": "forecast",
+      "seed": 3,
+      "capacity_kw": 50.0,
+      "timesteps": 300000,
+      "training_filter_interventions": 301056,
+      "evaluation_filter_interventions": 840
+    }
+  ]
+}

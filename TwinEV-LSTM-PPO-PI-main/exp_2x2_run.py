@@ -49,6 +49,7 @@ S3_WEIGHTS = {"energy": 1.0, "unmet": 2.0, "violation": 6.0}
 N_TEST_WEEKS = 5
 BASE_HORIZON = 6   # the original/paper horizon - keeps today's unsuffixed dirs/filenames
 BASE_CAPACITY_KW = 50.0   # the original/paper transformer limit - ditto
+EPISODE_HOURS = 168
 CHECKPOINT_DIR = "acn_exp_2x2_checkpoints"
 RESULTS_DIR = "acn_exp_2x2_results"
 
@@ -58,12 +59,16 @@ def horizon_forecast_csv(horizon: int) -> str:
             else f"acn_target_a_h{horizon}_bilstm_full.csv")
 
 
-def horizon_dirs(horizon: int) -> tuple[str, str]:
+def horizon_dirs(horizon: int, timestep_minutes: int = 60) -> tuple[str, str]:
     """Backwards-compatible alias for run_dirs() at the base capacity."""
-    return run_dirs(horizon, BASE_CAPACITY_KW)
+    return run_dirs(horizon, BASE_CAPACITY_KW, timestep_minutes)
 
 
-def run_dirs(horizon: int, capacity_kw: float = BASE_CAPACITY_KW) -> tuple[str, str]:
+def run_dirs(
+    horizon: int,
+    capacity_kw: float = BASE_CAPACITY_KW,
+    timestep_minutes: int = 60,
+) -> tuple[str, str]:
     """(checkpoint_dir, results_dir) for this (horizon, capacity_kw) - the
     base combination (horizon==BASE_HORIZON AND capacity_kw==BASE_CAPACITY_KW)
     reuses the original unsuffixed dirs so already-computed 6h/50kW results/
@@ -76,44 +81,65 @@ def run_dirs(horizon: int, capacity_kw: float = BASE_CAPACITY_KW) -> tuple[str, 
         suffix += f"_h{horizon}"
     if capacity_kw != BASE_CAPACITY_KW:
         suffix += f"_cap{int(capacity_kw)}"
+    if timestep_minutes != 60:
+        suffix += f"_dt{int(timestep_minutes)}"
     return f"{CHECKPOINT_DIR}{suffix}", f"{RESULTS_DIR}{suffix}"
 
 
-def shared_setup(horizon: int = BASE_HORIZON):
-    full_data = load_acn_sessions(DATA_PATH, timestep_minutes=60)
+def shared_setup(
+    horizon: int = BASE_HORIZON,
+    data_path: str = DATA_PATH,
+    forecast_csv: str | None = None,
+    use_forecast: bool = True,
+    timestep_minutes: int = 60,
+):
+    if 60 % timestep_minutes != 0:
+        raise ValueError("timestep_minutes must divide one hour")
+    full_data = load_acn_sessions(data_path, timestep_minutes=timestep_minutes)
+    episode_len = EPISODE_HOURS * 60 // timestep_minutes
     slot_roster = full_data.slot_ids
     n_steps = full_data.n_steps
     train_end, val_end = split_boundaries(n_steps)
 
-    fc = ForecastLookup(csv_path=horizon_forecast_csv(horizon))
+    forecast_path = (forecast_csv or horizon_forecast_csv(horizon)) if use_forecast else None
+    fc = ForecastLookup(csv_path=forecast_path) if forecast_path else None
     step_delta = pd.Timedelta(hours=1)
-    fc_first_idx = int(round((fc.first_valid_time - full_data.start_time) / step_delta))
-    fc_last_idx = int(round((fc.last_valid_time - full_data.start_time) / step_delta))
+    if fc is not None:
+        fc_first_idx = int(round((fc.first_valid_time - full_data.start_time) / step_delta))
+        fc_last_idx = int(round((fc.last_valid_time - full_data.start_time) / step_delta))
+    else:
+        fc_first_idx = 0
+        fc_last_idx = n_steps - 1
 
     # Test range shared by EVERY condition - clipped to what the
     # forecast can support so no condition ever sees a different set
     # of held-out weeks.
     test_lo = val_end
-    test_hi = min(n_steps - EPISODE_LEN, fc_last_idx - EPISODE_LEN + 1)
+    test_hi = min(n_steps - episode_len, fc_last_idx - episode_len + 1)
     test_starts = sorted(set(np.linspace(test_lo, test_hi - 1, N_TEST_WEEKS).astype(int).tolist()))
 
-    train_range_plain = (0, train_end - EPISODE_LEN)
-    train_range_forecast = (max(0, fc_first_idx), train_end - EPISODE_LEN)
+    train_range_plain = (0, train_end - episode_len)
+    train_range_forecast = (max(0, fc_first_idx), train_end - episode_len)
 
     return {
         "full_data": full_data, "slot_roster": slot_roster, "fc": fc,
         "train_range_plain": train_range_plain, "train_range_forecast": train_range_forecast,
         "test_range": (test_lo, test_hi), "test_starts": test_starts,
+        "episode_len": episode_len,
+        "timestep_minutes": timestep_minutes,
     }
 
 
 def make_env(setup, condition: str, seed: int, allowed_start_range,
              capacity_kw: float = BASE_CAPACITY_KW):
     forecast = setup["fc"] if condition == "forecast" else None
+    if condition == "forecast" and forecast is None:
+        raise ValueError("forecast condition requires a forecast CSV")
     return ACNWeeklyEpisodeEnv(
         setup["full_data"], setup["slot_roster"], allowed_start_range,
         transformer_limit_kw=capacity_kw,
         reward_weights=S3_WEIGHTS, seed=seed, symmetric_action=True, forecast=forecast,
+        episode_len=setup["episode_len"],
     )
 
 
@@ -154,18 +180,38 @@ def main() -> None:
                              "DOES depend on capacity (it changes the environment's actual "
                              "constraint/reward), so both conditions always train fresh at "
                              "any non-base capacity - no checkpoint reuse.")
+    parser.add_argument(
+        "--data-path", default=DATA_PATH,
+        help="Session cache to load, such as acn_jpl_2019.csv.",
+    )
+    parser.add_argument(
+        "--forecast-csv", default=None,
+        help="Forecast feature CSV; defaults to the Caltech horizon artifact.",
+    )
+    parser.add_argument(
+        "--timestep-minutes", type=int, choices=[15, 30, 60], default=60,
+        help="Simulation resolution; forecast CSV must use the same grid.",
+    )
     parser.add_argument("--total-timesteps", type=int, default=300_000)
     parser.add_argument("--chunk-timesteps", type=int, default=150_000)
     args = parser.parse_args()
 
-    checkpoint_dir, results_dir = run_dirs(args.horizon, args.capacity_kw)
+    checkpoint_dir, results_dir = run_dirs(
+        args.horizon, args.capacity_kw, args.timestep_minutes
+    )
     os.makedirs(checkpoint_dir, exist_ok=True)
     ckpt_path = os.path.join(checkpoint_dir, f"{args.condition}_seed{args.seed}.zip")
     sidecar_path = os.path.join(checkpoint_dir, f"{args.condition}_seed{args.seed}.json")
 
     print(f"Loading full-year ACN data + forecast lookup (horizon={args.horizon}h, "
           f"capacity={args.capacity_kw}kW)...")
-    setup = shared_setup(args.horizon)
+    setup = shared_setup(
+        args.horizon,
+        data_path=args.data_path,
+        forecast_csv=args.forecast_csv,
+        use_forecast=args.condition == "forecast",
+        timestep_minutes=args.timestep_minutes,
+    )
     print(f"Shared test weeks (forecast-safe, same for every condition): {setup['test_starts']}")
 
     # no_forecast's policy is horizon-independent (it never sees the
@@ -176,6 +222,7 @@ def main() -> None:
     # reward), so this reuse only applies when capacity is unchanged from base.
     reused_base_checkpoint = False
     if (args.condition == "no_forecast" and args.horizon != BASE_HORIZON
+            and args.timestep_minutes == 60
             and args.capacity_kw == BASE_CAPACITY_KW):
         base_done = checkpoint_done_timesteps(CHECKPOINT_DIR, args.condition, args.seed)
         if base_done >= args.total_timesteps:
@@ -232,6 +279,7 @@ def main() -> None:
     row = {
         "condition": args.condition, "seed": args.seed, "horizon": args.horizon,
         "capacity_kw": args.capacity_kw,
+        "timestep_minutes": args.timestep_minutes,
         "violation_rate": result["violation_rate"],
         "unmet_fraction": result["unmet_fraction"],
         "delivered_kwh": result["delivered_kwh"],

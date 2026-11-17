@@ -1,0 +1,29 @@
+{
+  "configuration": {
+    "capacity_kw": 50.0,
+    "per_ev_max_kw": 6.6,
+    "timestep_minutes": 60,
+    "horizons_hours": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "risk_definition": "greedy achievable draw > capacity",
+    "criterion": "median_h[A(l,h) * I(S(l,h) > 0)]",
+    "demand_definition": "sum(min(6.6, requested_kWh / timestep_hours))",
+    "timestamp_mapping": "floor connection step; ceil disconnect step; active on [connect, disconnect)"
+  },
+  "software": {
+    "python": "3.13.7",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3"
+  },
+  "office001_limitation": "Office001 has zero requested_kWh coverage. Its primary lead-time criterion is intentionally not computed; kWhDelivered is not treated as requested demand."
+}

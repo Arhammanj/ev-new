@@ -1,0 +1,27 @@
+{
+  "capacities_kw": [
+    25.0,
+    50.0,
+    75.0,
+    100.0,
+    125.0,
+    150.0
+  ],
+  "timestep_minutes": 60,
+  "horizons_hours": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "criterion": "median_h[A(l,h) * I(S(l,h) > 0)]",
+  "demand_definition": "sum(min(6.6, requested_kWh / timestep_hours))",
+  "risk_definition": "greedy achievable draw > capacity",
+  "office001": "unsupported without requested_kWh; not scored using kWhDelivered"
+}

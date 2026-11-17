@@ -1,0 +1,19 @@
+{
+  "violation_rate": 0.023809523809523808,
+  "unmet_fraction": 0.25566647097213707,
+  "delivered_kwh": 1931.4866643758244,
+  "safety_filter_interventions": 0,
+  "condition": "agg_obs",
+  "horizon": 6,
+  "capacity_kw": 50.0,
+  "seed": 3,
+  "timesteps": 300000,
+  "test_starts": [
+    7429,
+    7713,
+    7997,
+    8281,
+    8565
+  ],
+  "forecast_csv": null
+}

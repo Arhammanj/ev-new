@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
+
+import numpy as np
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
@@ -29,7 +33,13 @@ PPO_KWARGS = dict(
 )
 
 
-def train_and_evaluate(setup, hard_safety_filter: bool, seed: int, timesteps: int):
+def train_and_evaluate(
+    setup,
+    hard_safety_filter: bool,
+    seed: int,
+    timesteps: int,
+    checkpoint_dir: str | None = None,
+):
     train_env = Monitor(
         ACNWeeklyEpisodeEnv(
             setup["full_data"],
@@ -43,6 +53,12 @@ def train_and_evaluate(setup, hard_safety_filter: bool, seed: int, timesteps: in
     )
     model = PPO("MlpPolicy", train_env, seed=seed, verbose=0, **PPO_KWARGS)
     model.learn(total_timesteps=timesteps)
+    checkpoint_path = None
+    if checkpoint_dir is not None:
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        name = "safety_filtered_ppo" if hard_safety_filter else "penalty_ppo"
+        checkpoint_path = os.path.join(checkpoint_dir, f"{name}_seed{seed}")
+        model.save(checkpoint_path)
     eval_env = ACNWeeklyEpisodeEnv(
         setup["full_data"],
         setup["slot_roster"],
@@ -62,21 +78,59 @@ def train_and_evaluate(setup, hard_safety_filter: bool, seed: int, timesteps: in
         train_env.env.safety_filter_interventions
     )
     results["evaluation_safety_filter_calls"] = eval_env.safety_filter_calls
+    if checkpoint_path is not None:
+        results["checkpoint_path"] = f"{checkpoint_path}.zip"
     return results
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument(
+        "--seeds", type=int, nargs="+", default=None,
+        help="Run and aggregate multiple seeds; overrides --seed.",
+    )
     parser.add_argument("--timesteps", type=int, default=300_000)
     parser.add_argument("--output", default="acn_safety_filtered_comparison.json")
+    parser.add_argument(
+        "--checkpoint-dir", default="acn_safety_filtered_checkpoints",
+        help="Directory for loadable PPO .zip files; pass an empty string to disable.",
+    )
     args = parser.parse_args()
     setup = shared_setup()
+    checkpoint_dir = args.checkpoint_dir or None
+    seeds = args.seeds if args.seeds is not None else [args.seed]
+    per_seed = {}
+    for seed in seeds:
+        per_seed[str(seed)] = {
+            "penalty_ppo": train_and_evaluate(
+                setup, False, seed, args.timesteps, checkpoint_dir
+            ),
+            "safety_filtered_ppo": train_and_evaluate(
+                setup, True, seed, args.timesteps, checkpoint_dir
+            ),
+        }
+
+    def summarize(controller: str) -> dict:
+        rows = [per_seed[str(seed)][controller] for seed in seeds]
+        metrics = ("violation_rate", "unmet_fraction", "delivered_kwh")
+        return {
+            metric: {
+                "mean": float(np.mean([r[metric] for r in rows])),
+                "std": float(np.std([r[metric] for r in rows])),
+            }
+            for metric in metrics
+        }
+
     results = {
-        "penalty_ppo": train_and_evaluate(setup, False, args.seed, args.timesteps),
-        "safety_filtered_ppo": train_and_evaluate(setup, True, args.seed, args.timesteps),
+        "seeds": seeds,
+        "timesteps": args.timesteps,
+        "per_seed": per_seed,
+        "summary": {
+            "penalty_ppo": summarize("penalty_ppo"),
+            "safety_filtered_ppo": summarize("safety_filtered_ppo"),
+        },
     }
-    import json
     with open(args.output, "w") as handle:
         json.dump(results, handle, indent=2)
     print(json.dumps(results, indent=2))

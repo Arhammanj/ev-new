@@ -1,0 +1,38 @@
+{
+  "ppo_hyperparameters": {
+    "learning_rate": 0.0003,
+    "n_steps": 2048,
+    "batch_size": 256,
+    "n_epochs": 10,
+    "gamma": 0.99,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5,
+    "policy_kwargs": {
+      "net_arch": [
+        256,
+        256,
+        128
+      ]
+    }
+  },
+  "training_action_mode": "sampled Gaussian actions from PPO policy",
+  "evaluation_action_mode": "deterministic=True in exp_2x2_run.py and safety evaluation",
+  "forecast_audit": {
+    "rows": 8542,
+    "first_timestamp": "2019-01-09 17:41:45+00:00",
+    "last_timestamp": "2019-12-31 14:41:45+00:00",
+    "timestamp_unique": true,
+    "hour_index_monotonic": true,
+    "input_last_index_lt_target": true,
+    "train_rows": 5921,
+    "validation_rows": 1310,
+    "test_rows": 1311,
+    "test_forecast_rows_used_for_training": 0,
+    "target_column_used_as_input": false
+  },
+  "leakage_verdict": "PASS: target is excluded from forecast inputs; input_last_index is strictly before the predicted target; scaler/model training uses chronological train rows only.",
+  "resolution_note": "ACN session timestamps have sub-hour precision, and the loader can resolve them to 15-minute grids. Forecast and controller artifacts must be regenerated at the chosen timestep; hourly artifacts are not reused for 15-minute experiments."
+}

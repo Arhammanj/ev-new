@@ -102,6 +102,16 @@ class ForecastLookup:
     def __init__(self, csv_path: str = "acn_target_a_bilstm_full.csv"):
         df = pd.read_csv(csv_path, parse_dates=["timestamp"])
         df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
+        required = {"timestamp", "predicted"}
+        missing = required - set(df.columns)
+        if missing:
+            raise ValueError(f"{csv_path} is missing forecast column(s): {sorted(missing)}")
+        if df["timestamp"].duplicated().any():
+            raise ValueError(f"{csv_path} contains duplicate forecast timestamps")
+        if not df["timestamp"].is_monotonic_increasing:
+            raise ValueError(f"{csv_path} forecast timestamps are not sorted")
+        if not np.isfinite(df["predicted"].to_numpy(dtype=float)).all():
+            raise ValueError(f"{csv_path} contains non-finite forecast values")
         # NOTE: index must be a tz-aware DatetimeIndex, not
         # df["timestamp"].values (.values on a tz-aware column drops
         # the tz, becoming naive datetime64[ns] - exact-match lookup

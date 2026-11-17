@@ -300,3 +300,20 @@ effect-size-vs-spread heuristic (`report_capacity_comparison.py`, same logic as
 actually a *stricter* bar than a proper standard-error-based test would be —
 worth citing precisely rather than as "not statistically significant" if this
 goes in the paper.
+
+## Appendix: Legacy Experiment 5 (older FULL TwinEV pipeline)
+
+Experiment 5 is the five-seed repetition of the original FULL TwinEV
+LSTM+PPO+PI pipeline, **not** the newer ACN reviewer experiments. Results:
+delivered energy 109,712.15 ± 5,201.74 kWh (CV 4.7%), peak power
+115.54 ± 2.64 kW (CV 2.3%), and evaluation reward 4,108.67 ± 458.74
+(CV 11.2%). Seeds 4-5 deliver about 8% more energy with roughly 12x lower
+power variance than seeds 1-3, so the seed spread reflects different
+smoothing strategies rather than noise around one solution. Final training
+reward is tight (349.13 ± 5.92) and nearly uncorrelated with evaluation
+reward (r = 0.14), so it is not a model-selection signal. Multi-seed
+reporting is required for energy/reward claims on this pipeline. The
+zero-overload result is by construction (the archived environment
+hard-clips at 150 kW) and is not a learned-safety result. Figure:
+paper_figures/legacy_exp5_twinev_seed_stability.pdf; data:
+results/statistics/twinev_seed_stability.csv.

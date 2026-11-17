@@ -1,0 +1,10 @@
+comparison,metric,left,right,n_weeks,mean_difference,std_difference,ci95_low,ci95_high,paired_t_p_value
+bilstm_minus_no_forecast,violation_rate,bilstm_mpc,no_forecast_mpc,5,0.0,0.0,0.0,0.0,
+oracle_minus_no_forecast,violation_rate,oracle_mpc,no_forecast_mpc,5,0.0,0.0,0.0,0.0,
+oracle_minus_bilstm,violation_rate,oracle_mpc,bilstm_mpc,5,0.0,0.0,0.0,0.0,
+bilstm_minus_no_forecast,unmet_fraction,bilstm_mpc,no_forecast_mpc,5,0.0010058387781155752,0.0020810136657731823,-0.0015780809704450311,0.0035897585266761816,0.3406034212058296
+oracle_minus_no_forecast,unmet_fraction,oracle_mpc,no_forecast_mpc,5,0.0008774803303547351,0.0018938993947894421,-0.0014741063643752168,0.0032290670250846873,0.35871642214191624
+oracle_minus_bilstm,unmet_fraction,oracle_mpc,bilstm_mpc,5,-0.00012835844776084014,0.00020030214978346376,-0.0003770664159097854,0.00012034952038810512,0.22516251163974157
+bilstm_minus_no_forecast,delivered_kwh,bilstm_mpc,no_forecast_mpc,5,-3.587734906035803,7.475952856222012,-12.870356419875293,5.694886607803688,0.3436537584426312
+oracle_minus_no_forecast,delivered_kwh,oracle_mpc,no_forecast_mpc,5,-3.1399594882070234,6.799762439883036,-11.582979706147992,5.303060729733946,0.36014868720076404
+oracle_minus_bilstm,delivered_kwh,oracle_mpc,bilstm_mpc,5,0.4477754178287796,0.7147383106820241,-0.43968941068206824,1.3352402463396276,0.2338596578933717

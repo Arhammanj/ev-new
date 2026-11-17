@@ -1,0 +1,19 @@
+{
+  "violation_rate": 0.044047619047619044,
+  "unmet_fraction": 0.25886866441471856,
+  "delivered_kwh": 1977.3328684413802,
+  "safety_filter_interventions": 0,
+  "condition": "forecast",
+  "horizon": 2,
+  "capacity_kw": 50.0,
+  "seed": 1,
+  "timesteps": 300000,
+  "test_starts": [
+    7429,
+    7714,
+    7999,
+    8284,
+    8569
+  ],
+  "forecast_csv": "revision_setup\\outputs\\oracle_forecasts\\oracle_h2.csv"
+}

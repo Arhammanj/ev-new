@@ -41,6 +41,40 @@ order, including the dead ends.
   *why* the forecast doesn't help (spoiler: the arrival surges that cause violations
   happen too fast for any forecast horizon to give a controller room to pre-charge).
 
+### Seed stability in the legacy FULL TwinEV pipeline (not the newer ACN reviewer experiments)
+
+The original FULL TwinEV pipeline — the archived synthetic LSTM+PPO+PI setup, not
+the real-ACN `ACNChargingEnv` experiments above — was repeated with five
+independent PPO seeds on the same test set. The seed spread separates cleanly
+into stable and unstable metrics. Peak power was tight at **115.54 ± 2.64 kW**
+(CV 2.3%), while delivered energy was **109,712.15 ± 5,201.74 kWh** (CV 4.7%)
+and evaluation reward was **4,108.67 ± 458.74** (CV 11.2%). Seeds 4–5 delivered
+about 8% more energy than seeds 1–3 with roughly 12x lower power variance
+(33 vs 395 kW²), so they converged to a visibly smoother charging profile
+rather than adding noise around one common solution. Evaluation reward tracked
+delivered energy (r = 0.97) and anti-tracked power variance (r = -0.98);
+final training reward was tight (349.13 ± 5.92) but nearly uncorrelated with
+evaluation reward (r = 0.14), so it is not a reliable model-selection proxy.
+
+**Interpretation:** on this legacy pipeline, single-seed energy/reward comparisons
+can move by roughly 5–11% and are not trustworthy; multi-seed reporting is
+required. Peak power and the overload count are seed-stable. The zero-overload
+result (0 hard, 0 soft for all five seeds) is **not** evidence of learned
+safety, however: the archived FULL TwinEV environment hard-clips delivered power
+at 150 kW, making zero overloads true by construction. This experiment is
+therefore reported only as a training-variability diagnostic for the older FULL
+TwinEV pipeline, separate from the ACN reviewer experiments above.
+
+Figure:
+[`paper_figures/legacy_exp5_twinev_seed_stability.pdf`](paper_figures/legacy_exp5_twinev_seed_stability.pdf)
+([PNG](results/plots/twinev_seed_stability.png)). Per-seed data and aggregate
+summary:
+[`results/statistics/twinev_seed_stability.csv`](results/statistics/twinev_seed_stability.csv)
+and
+[`results/statistics/twinev_seed_stability_summary.csv`](results/statistics/twinev_seed_stability_summary.csv).
+Regenerate the figure from the saved CSV without retraining:
+`python plot_exp5_seed_stability.py`.
+
 ## Architecture
 
 ```
@@ -88,11 +122,12 @@ ACNWeeklyEpisodeEnv  (train_controller.py)
 | `instrument_action_collapse.py`, `instrument_reward_terms.py` | Diagnostics that found the action-space-asymmetry root cause and ruled out reward-content explanations |
 
 **Legacy (superseded, kept for history — not part of the current pipeline):**
-`baseline.py`, `pi_controller.py`, `evaluate.py`, `lstm_forecast.py`/`lstm_forecast_torch.py`
-at the repo root, and everything under `archive/`, belong to the original synthetic
-digital-twin design (see below) and are not imported by anything in the current
-pipeline. They're left in place rather than deleted so the project's history stays
-traceable; a future cleanup pass would move the root-level ones into `archive/` too.
+`baseline.py`, `pi_controller.py`, `evaluate.py`, `lstm_forecast.py`/`lstm_forecast_torch.py`,
+`exp5_seed_stability.py`, and `plot_exp5_seed_stability.py` at the repo root, plus
+everything under `archive/`, belong to the original synthetic digital-twin design
+(see below) and are not imported by anything in the current pipeline. They're left
+in place rather than deleted so the project's history stays traceable; a future
+cleanup pass would move the root-level ones into `archive/` too.
 
 ### Origin: a rejected synthetic environment
 
@@ -134,11 +169,17 @@ python diagnose_forecast.py
 Additional reviewer experiments:
 
 ```bash
-# Hard safety layer versus ordinary penalty PPO
+# Hard safety layer versus ordinary penalty PPO (also writes loadable .zip checkpoints)
 python exp_safety_filtered_ppo.py --seed 1 --timesteps 300000
+
+# Publication-scale five-seed aggregate (run sequentially)
+python exp_safety_filtered_ppo.py --seeds 1 2 3 4 5 --timesteps 300000
 
 # Constraint-respecting conventional scheduling benchmarks
 python benchmark_baselines.py --capacity-kw 50 --horizon-hours 6
+
+# Historical one-step LP (the default is now finite-horizon MPC)
+python benchmark_baselines.py --capacity-kw 50 --horizon-hours 6 --mpc-mode one_step
 
 # Synthetic gradual-ramp sanity experiment
 python synthetic_ramp_experiment.py
@@ -153,12 +194,78 @@ the verification run; Office001 retained none, so Office001 falls back to
 `kWhDelivered` and is not directly comparable to Caltech's requested-demand
 experiments without an explicit demand-assumption change.
 
-The MPC benchmark is a receding one-step linear allocation using current
-presence, remaining demand, deadlines, per-EV limits, and the capacity
-constraint. It does not use future actual demand or a forecast trajectory;
-its `--horizon-hours` argument changes urgency weighting rather than solving
-a full multi-step prediction model. The synthetic ramp script is a
-controlled load-profile sanity check, not an ACN environment rollout.
+Cross-site forecast artifacts can be generated without comparing against
+Caltech's reference metric:
+
+```bash
+python generate_forecast_feature.py --data-path acn_jpl_2019.csv \
+  --horizon 6 --output-csv acn_jpl_target_a_h6_bilstm_full.csv
+python exp_2x2_run.py --condition forecast --seed 1 --data-path acn_jpl_2019.csv \
+  --forecast-csv acn_jpl_target_a_h6_bilstm_full.csv
+python exp_2x2_cap_only.py --data-path acn_jpl_2019.csv
+```
+
+Use the analogous Office001 paths for a technically runnable comparison, but
+report its fallback-to-delivered-demand assumption separately.
+
+### Reproducibility, leakage, and temporal resolution
+
+The locked PPO configuration is:
+
+```text
+learning_rate=3e-4, n_steps=2048, batch_size=256, n_epochs=10
+gamma=0.99, gae_lambda=0.95, clip_range=0.2, ent_coef=0.01
+vf_coef=0.5, max_grad_norm=0.5, policy net=[256, 256, 128]
+```
+
+PPO samples Gaussian actions during training. Reported policy evaluation uses
+`deterministic=True`; it does not sample from the learned action distribution.
+The safety-filter comparison uses the same deterministic evaluation convention.
+
+Run the audit and save its alignment figure under `paper_figures/`:
+
+```bash
+python verify_reproducibility.py
+```
+
+Forecast timestamps are normalized to UTC, strictly increasing, unique, and
+aligned to the same grid as the environment. The forecast target is excluded
+from the BiLSTM input sequence; only past arrival-demand lags, rolling
+statistics, and calendar features are inputs. The scaler and model are fit on
+chronological training rows only. Test rows are evaluated after training and
+are never used as training targets or inputs. The audit writes
+`reproducibility_audit.json` and `forecast_alignment_audit.{png,pdf}`.
+
+The cached ACN session timestamps have sub-hour precision, so 15-minute
+experiments are feasible through the loader and environment. Generate a
+matching 15-minute forecast and run the same controller at that resolution:
+
+```bash
+python generate_forecast_feature.py --timestep-minutes 15 \
+  --output-csv acn_target_a_15m_bilstm_full.csv
+python exp_2x2_cap_only.py --timestep-minutes 15
+python exp_2x2_run.py --condition forecast --seed 1 --timestep-minutes 15 \
+  --forecast-csv acn_target_a_15m_bilstm_full.csv
+```
+
+The 15-minute runner uses a 168-hour episode (`672` steps) and separate
+checkpoint/result directories. Compare real-data grid pressure before training:
+
+```bash
+python resolution_comparison.py
+```
+
+This writes hourly-versus-15-minute metrics and
+`resolution_comparison.{png,pdf}` under `paper_figures/`. Hourly forecast
+artifacts are never reused for 15-minute runs.
+
+The benchmark's default MPC is a receding finite-horizon linear allocation
+using only currently connected EVs, their remaining demand/deadlines,
+per-EV limits, and the capacity constraint. It does not use future actual
+sessions or a forecast trajectory. The historical urgency-weighted one-step
+LP remains available with `--mpc-mode one_step`. The synthetic ramp script
+also runs both policies through `ACNChargingEnv`; its external background
+load remains a controlled fixture rather than real ACN data.
 
 The diagnostic also writes `acn_flexibility_records.csv`,
 `acn_flexibility_summary.csv`, `acn_saturation_periods.csv`, and
@@ -203,14 +310,15 @@ PyTorch (BiLSTM forecaster), pandas / NumPy / scikit-learn.
   dynamics offering no exploitable lead time, not to a broken or misaligned forecast.
 - Safety-filtered PPO has been implemented and verified in focused tests and a
   2,048-step smoke comparison; a publication-scale multi-seed run is still pending.
-- EDF and one-step MPC-style benchmarks have been executed at 50 kW. The MPC is not
-  a full multi-step predictive optimizer, and its results are not a replacement for
-  a publication-scale benchmark study.
+- EDF and finite-horizon MPC benchmarks are implemented at 50 kW. Existing
+  benchmark JSON files were produced by the historical one-step mode; rerun the
+  benchmark with its default mode for finite-horizon results.
 - JPL and Office001 data downloads and loader/environment checks passed. Full
   flexibility diagnostics and controller experiments on those sites remain pending;
   Office001 has no requested-energy field and is therefore not directly comparable.
-- The synthetic ramp is a reproducible load-profile sanity check, not a full
-  ACN/Gym controller rollout.
+- The synthetic ramp is a reproducible controlled fixture and now includes an
+  ACN/Gym environment rollout; it is not a substitute for a real-data study.
 - Shorter-horizon controller experiments (1h and 3h) and additional independent
-  controller runs remain pending. No trained PPO binary checkpoints are currently
-  available; the existing checkpoint sidecars preserve timestep bookkeeping only.
+  controller runs remain pending. New safety-comparison runs save loadable PPO
+  binaries under `acn_safety_filtered_checkpoints/`; older sidecar-only runs
+  cannot be reconstructed without retraining.

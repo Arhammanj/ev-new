@@ -51,14 +51,19 @@ LGBM_FEATURE_COLS = [c for c in FEATURE_COLS if c != "demand"]
 # 1. TARGET SERIES
 # ==========================================
 
-def build_target_series(data_path: str) -> pd.DataFrame:
-    data = load_acn_sessions(data_path, timestep_minutes=60)
+def build_target_series(
+    data_path: str,
+    timestep_minutes: int = 60,
+) -> pd.DataFrame:
+    data = load_acn_sessions(data_path, timestep_minutes=timestep_minutes)
     n = data.n_steps
     demand = np.zeros(n, dtype=np.float64)
     for t in range(n):
         for idx in data.arrivals_by_step[t]:
             demand[t] += data.sessions[idx].requested_kwh
-    timestamps = pd.date_range(data.start_time, periods=n, freq="h")
+    timestamps = pd.date_range(
+        data.start_time, periods=n, freq=pd.Timedelta(minutes=timestep_minutes)
+    )
     return pd.DataFrame({"timestamp": timestamps, "demand": demand})
 
 

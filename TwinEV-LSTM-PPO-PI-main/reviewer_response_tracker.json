@@ -1,0 +1,522 @@
+{
+  "points": [
+    {
+      "id": "R1-1",
+      "reviewer": "R1",
+      "number": 1,
+      "title": "Distinguish the criterion from flexibility, demand response, and prior forecasting/MPC work.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R1-2",
+      "reviewer": "R1",
+      "number": 2,
+      "title": "Validate the criterion on additional real-world datasets or independent scenarios.",
+      "status": "addressed",
+      "response": "Caltech and JPL were evaluated with requested-energy complete cases; Office001 was retained as unsupported because requested energy is absent.",
+      "artifacts": [
+        "cross_dataset_lead_time\\outputs\\lead_time_scores.csv",
+        "cross_dataset_lead_time\\CROSS_DATASET_REPORT.md"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R1-3",
+      "reviewer": "R1",
+      "number": 3,
+      "title": "Quantify how the score changes with transformer capacity.",
+      "status": "partial",
+      "response": "Approved exact capacity sweep completed at 25, 50, 75, 100, 125, and 150 kW. Capacity changes risk frequency and joint flexibility; physical-model caveats remain.",
+      "artifacts": [
+        "cross_dataset_lead_time\\capacity_sweep_outputs_approved_20261117\\capacity_sweep_scores.csv",
+        "cross_dataset_lead_time\\capacity_sweep_outputs_approved_20261117\\capacity_sweep_statistics.csv",
+        "cross_dataset_lead_time\\capacity_sweep_outputs_approved_20261117\\paper_figures\\capacity_lead_time_heatmap.png"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R1-4",
+      "reviewer": "R1",
+      "number": 4,
+      "title": "Justify the median/binary-slack formulation and compare continuous or energy-based flexibility.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R1-5",
+      "reviewer": "R1",
+      "number": 5,
+      "title": "Compare against safety-filtered RL, constrained optimization, or MPC.",
+      "status": "partial",
+      "response": "MPC and safety-filter infrastructure exists; the complete comparative experiment is not yet reported.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R1-6",
+      "reviewer": "R1",
+      "number": 6,
+      "title": "Increase seeds and distinguish no significance from no practical benefit.",
+      "status": "partial",
+      "response": "Reproducibility and multi-seed aggregation support were added; expanded independent runs remain pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R1-7",
+      "reviewer": "R1",
+      "number": 7,
+      "title": "Evaluate one-, three-, and six-hour forecasts in the controller.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R1-8",
+      "reviewer": "R1",
+      "number": 8,
+      "title": "Discuss charging-rate, SOC, deadlines, and finer control intervals.",
+      "status": "partial",
+      "response": "Real Caltech 15-minute loading and forecast-resolution support were verified; SOC/deadline and rate sensitivity remain pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R1-9",
+      "reviewer": "R1",
+      "number": 9,
+      "title": "Provide joint distributions of availability and slack.",
+      "status": "addressed",
+      "response": "Statistical audit completed across 60, 30, and 15 minute grids; joint A/S frequencies and zero-product persistence are reported.",
+      "artifacts": [
+        "cross_dataset_lead_time\\STATISTICAL_METHODOLOGICAL_AUDIT.md",
+        "cross_dataset_lead_time\\outputs_60m\\lead_time_statistical_diagnostics.csv",
+        "cross_dataset_lead_time\\outputs_60m\\paper_figures\\lead_time_condition_diagnostics.png"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R1-10",
+      "reviewer": "R1",
+      "number": 10,
+      "title": "Clarify whether the criterion is a screening metric, necessary condition, or performance predictor.",
+      "status": "partial",
+      "response": "The cross-dataset report frames it as a screening/necessary-condition diagnostic; prospective controller selection is not yet demonstrated.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-1",
+      "reviewer": "R2",
+      "number": 1,
+      "title": "State what information is needed to compute the criterion.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-2",
+      "reviewer": "R2",
+      "number": 2,
+      "title": "Quantify rapid deployment or grid stress in the introduction.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-3",
+      "reviewer": "R2",
+      "number": 3,
+      "title": "Explain why forecasting is widely adopted before criticizing its premise.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-4",
+      "reviewer": "R2",
+      "number": 4,
+      "title": "Link each contribution to the supporting questions.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-5",
+      "reviewer": "R2",
+      "number": 5,
+      "title": "Signpost the distinction from prediction-assisted and safe-RL studies.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-6",
+      "reviewer": "R2",
+      "number": 6,
+      "title": "Expand the motivation for the actionability gap.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-7",
+      "reviewer": "R2",
+      "number": 7,
+      "title": "Describe ACN-Data usage patterns and site context.",
+      "status": "partial",
+      "response": "Dataset characteristics and arrival/departure/energy figures were generated; manuscript prose remains to be updated.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-8",
+      "reviewer": "R2",
+      "number": 8,
+      "title": "Justify hourly resolution.",
+      "status": "addressed",
+      "response": "The README and resolution comparison document hourly versus real 15-minute support.",
+      "artifacts": [
+        "resolution_comparison.py",
+        "paper_figures\\resolution_comparison.png"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R2-9",
+      "reviewer": "R2",
+      "number": 9,
+      "title": "Contrast measured capacity with synthetic environments.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-10",
+      "reviewer": "R2",
+      "number": 10,
+      "title": "Explain why the selected aggregate target is more forecastable.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-11",
+      "reviewer": "R2",
+      "number": 11,
+      "title": "Provide the full reward function and learning trade-offs.",
+      "status": "partial",
+      "response": "PPO configuration and evaluation behavior are documented; full manuscript reward exposition remains pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-12",
+      "reviewer": "R2",
+      "number": 12,
+      "title": "Explain residual violations under reward penalties.",
+      "status": "partial",
+      "response": "The implementation documents penalty-based evaluation and safety-filter infrastructure; manuscript discussion remains pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-13",
+      "reviewer": "R2",
+      "number": 13,
+      "title": "Improve Figure 3 axis label and horizon markers.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-14",
+      "reviewer": "R2",
+      "number": 14,
+      "title": "Justify median slack instead of mean slack.",
+      "status": "addressed",
+      "response": "The report preserves the median criterion and explains its distributional interpretation.",
+      "artifacts": [
+        "cross_dataset_lead_time\\CROSS_DATASET_REPORT.md"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R2-15",
+      "reviewer": "R2",
+      "number": 15,
+      "title": "Discuss why capacity findings persist across capacities.",
+      "status": "partial",
+      "response": "Approved capacity sweep quantifies risk-hour frequency, slack, joint A/S frequency, and the original median score across six capacities; manuscript interpretation remains pending.",
+      "artifacts": [
+        "cross_dataset_lead_time\\capacity_sweep_outputs_approved_20261117\\capacity_sweep_statistics.csv",
+        "cross_dataset_lead_time\\capacity_sweep_outputs_approved_20261117\\paper_figures\\capacity_flexibility_relationship.png"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R2-16",
+      "reviewer": "R2",
+      "number": 16,
+      "title": "Give concrete next steps for wider datasets and adaptive horizons.",
+      "status": "partial",
+      "response": "Cross-dataset evaluation and multi-resolution support provide concrete next steps; adaptive horizons remain future work.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R2-17",
+      "reviewer": "R2",
+      "number": 17,
+      "title": "Change 'controllable demand' to 'controllable EV demand'.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-1",
+      "reviewer": "R3",
+      "number": 1,
+      "title": "Add learning curves and MPC with BiLSTM and oracle forecasts.",
+      "status": "partial",
+      "response": "Finite-horizon MPC and rollout infrastructure were added; the requested synthetic-site comparison is not yet reported.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-2",
+      "reviewer": "R3",
+      "number": 2,
+      "title": "Test whether the forecast adds information beyond calendar features.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-3",
+      "reviewer": "R3",
+      "number": 3,
+      "title": "Count lead time from saturated-period onset.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-4",
+      "reviewer": "R3",
+      "number": 4,
+      "title": "Explain the median and positive-slack threshold; report full distributions.",
+      "status": "addressed",
+      "response": "Full event-level distributions show that the median is zero because 90.25% of Caltech and 92.61% of JPL one-hour products are zero; nonzero means and upper tails are retained.",
+      "artifacts": [
+        "cross_dataset_lead_time\\STATISTICAL_METHODOLOGICAL_AUDIT.md",
+        "cross_dataset_lead_time\\outputs_60m\\lead_time_statistical_diagnostics.csv",
+        "cross_dataset_lead_time\\outputs_60m\\risk_hour_zero_persistence.csv"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R3-5",
+      "reviewer": "R3",
+      "number": 5,
+      "title": "Run controllers with and without forecast and score JPL/Office001.",
+      "status": "partial",
+      "response": "JPL was scored using requested energy; Office001 is scientifically unsupported for requested-demand scoring; synthetic controller comparison remains pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-6",
+      "reviewer": "R3",
+      "number": 6,
+      "title": "Add aggregate draw to the PPO observation.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-7",
+      "reviewer": "R3",
+      "number": 7,
+      "title": "Increase seeds because the confidence interval spans the capacity-sweep room.",
+      "status": "partial",
+      "response": "Multi-seed aggregation support exists; additional independent runs remain pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-8",
+      "reviewer": "R3",
+      "number": 8,
+      "title": "Use a safety layer to isolate forecast effects.",
+      "status": "partial",
+      "response": "Safety-filtered controller support was added; the complete comparison is not yet reported.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-9",
+      "reviewer": "R3",
+      "number": 9,
+      "title": "Reconcile inconsistent p-values and capacity-sweep statements.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-10",
+      "reviewer": "R3",
+      "number": 10,
+      "title": "Document PPO hyperparameters, deterministic actions, and train/test forecast separation.",
+      "status": "addressed",
+      "response": "PPO settings, sampled versus deterministic evaluation, timestamp alignment, and leakage safeguards are documented.",
+      "artifacts": [
+        "verify_reproducibility.py",
+        "README.md"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R3-11",
+      "reviewer": "R3",
+      "number": 11,
+      "title": "Correct or run the promised one- and three-hour controller forecasts.",
+      "status": "partial",
+      "response": "Forecast generation supports multiple horizons; the controller comparison for all promised horizons remains pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-12",
+      "reviewer": "R3",
+      "number": 12,
+      "title": "Restore random-policy and reward-weight-sweep reporting.",
+      "status": "open",
+      "response": "",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R3-13",
+      "reviewer": "R3",
+      "number": 13,
+      "title": "Explain the synthetic ramp arrival model and imposed curve.",
+      "status": "partial",
+      "response": "Synthetic-ramp infrastructure was audited; a fuller manuscript explanation remains pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R4-1",
+      "reviewer": "R4",
+      "number": 1,
+      "title": "Justify 50 kW, per-EV power, aggregation, and capacity sensitivity.",
+      "status": "partial",
+      "response": "Approved exact criterion sweep completed at 25-150 kW with 50 kW retained as baseline. Site-specific transformer justification and physical-model correction remain pending.",
+      "artifacts": [
+        "cross_dataset_lead_time\\capacity_sweep_outputs_approved_20261117\\run_configuration.json",
+        "cross_dataset_lead_time\\capacity_sweep_outputs_approved_20261117\\paper_figures\\capacity_lead_time_scores.png"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R4-2",
+      "reviewer": "R4",
+      "number": 2,
+      "title": "Justify hourly resolution and repeat at 15-minute intervals.",
+      "status": "addressed",
+      "response": "Real Caltech 15-minute feasibility and hourly-versus-15-minute comparison artifacts were generated.",
+      "artifacts": [
+        "resolution_comparison.py",
+        "paper_figures\\resolution_comparison.png"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R4-3",
+      "reviewer": "R4",
+      "number": 3,
+      "title": "Explain variables mathematically and report joint/event-level distributions.",
+      "status": "addressed",
+      "response": "The criterion implementation, event records, statistical diagnostics, and condition figures are available.",
+      "artifacts": [
+        "cross_dataset_lead_time\\outputs\\lead_time_event_records.csv",
+        "cross_dataset_lead_time\\outputs\\paper_figures\\lead_time_condition_diagnostics.png"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R4-4",
+      "reviewer": "R4",
+      "number": 4,
+      "title": "Justify six-hour aggregate demand and verify no forecast input/target leakage.",
+      "status": "partial",
+      "response": "Input/target leakage was removed and alignment audits were added; peak/violation forecasting targets remain future work.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R4-5",
+      "reviewer": "R4",
+      "number": 5,
+      "title": "Add rule-based, optimization, or MPC benchmarks.",
+      "status": "partial",
+      "response": "MPC and cap-only infrastructure exists; a complete benchmark table is not yet reported.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R4-6",
+      "reviewer": "R4",
+      "number": 6,
+      "title": "Increase runs, statistical comparisons, temporal periods, and PPO reproducibility details.",
+      "status": "partial",
+      "response": "Reproducibility audits, configuration capture, and multi-seed support were added; expanded periods/runs remain pending.",
+      "artifacts": [],
+      "reproduction": []
+    },
+    {
+      "id": "R4-7",
+      "reviewer": "R4",
+      "number": 7,
+      "title": "Validate on an independent real-world dataset.",
+      "status": "addressed",
+      "response": "JPL was evaluated independently; Office001 was transparently excluded from requested-demand scoring because coverage is zero.",
+      "artifacts": [
+        "cross_dataset_lead_time\\outputs\\dataset_verification.csv",
+        "cross_dataset_lead_time\\CROSS_DATASET_REPORT.md"
+      ],
+      "reproduction": []
+    },
+    {
+      "id": "R4-8",
+      "reviewer": "R4",
+      "number": 8,
+      "title": "Reconcile forecasting horizons and capacity-sweep claims.",
+      "status": "partial",
+      "response": "Resolution and forecast documentation were updated; manuscript tables and all controller horizon runs remain pending.",
+      "artifacts": [],
+      "reproduction": []
+    }
+  ]
+}
